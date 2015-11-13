@@ -1,0 +1,519 @@
+<!DOCTYPE HTML PUBLIC "-//SoftQuad Software//DTD HoTMetaL PRO 6.0::19990601::extensions to HTML 4.0//EN" "hmpro6.dtd">
+<HTML> 
+  <HEAD><META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+	<META NAME="KEYWORDS"
+	 CONTENT="Crosswords , Friends , infinite , instant , unlimited , crossword , cross, word, generator , puzzle , script , crosswords, printable , free">
+	<META NAME="DESCRIPTION"
+	 CONTENT="Crosswords for Friends Infinite Free Crossword Puzzle Generator Script to create Crosswords for prining or saving for use in your web browser">
+	
+	<TITLE> Crossword Puzzle Generator by Emogic.com %game%</TITLE> <STYLE TYPE="text/css">
+
+.cellnumber{
+color:red;
+padding:0;
+margin:0;
+border:0;
+position:absolute;
+top:1px;
+left:1px;
+}
+
+.letterclass {
+background-color: green;
+text-align: center;
+vertical-align : MIDDLE;
+height: 25pt;
+width: 20pt;
+}
+
+.tableclass {
+  background-color: white;
+}
+
+.tdwhiteclass {
+  background-color: white;
+  text-align: center;
+  vertical-align : MIDDLE;
+  height: 25pt;
+  width: 20pt;
+  border-top: 1pt black solid;
+  border-right: 1pt Black solid;
+  border-bottom: 1pt Black solid;
+  border-left: 1pt Black solid;
+}
+
+.tdinnerclass {
+  background-color: white;
+  height: 25pt;
+  width: 20pt;
+  border-top: 1pt black solid;
+  border-right: 1pt Black solid;
+  border-bottom: 1pt Black solid;
+  border-left: 1pt Black solid;
+}
+
+.tdblackclass {
+  height: 25pt;
+  width: 20pt;
+  background-color: black;
+}
+
+.tdnumberclass {
+  background-color: white;
+  font-size: 10pt;
+  margin-top : 1pt;
+  margin-left : 1pt;
+}
+
+.tdselectedclass {
+  height: 25pt;
+  width: 20pt;
+  text-align: center;
+  vertical-align : MIDDLE;
+  background-color: red;
+  border-top: 1pt black solid;
+  border-right: 1pt Black solid;
+  border-bottom: 1pt Black solid;
+  border-left: 1pt Black solid;
+}
+
+.tdwordselectedclass {
+  height: 25pt;
+  width: 20pt;
+  text-align: center;
+  vertical-align : MIDDLE;
+  background-color: #99FFFF;
+  border-top: 1pt black solid;
+  border-right: 1pt Black solid;
+  border-bottom: 1pt Black solid;
+  border-left: 1pt Black solid;
+}
+
+.chatbox {
+height:4em;
+width:100%;
+border:1px solid;
+padding:2px;
+margin-top:5px;
+overflow:auto;
+}
+
+.clues:hover {text-decoration:none; background-color:#80FFFF;}
+.cluesSelected {text-decoration:none; background-color:#c0c0c0;}
+.cluesCleared {text-decoration:none;}
+</STYLE> 
+  </HEAD> 
+  <BODY
+   ONKEYUP="if(CurrentFocus != ''){send_cell_update(event.keyCode||event.which);}//send keycode event to function for firefox">
+	<SCRIPT TYPE="text/javascript">
+//variables passed from facebook to .cgi script
+var uid = "%uid%"
+
+function gup( name )
+{
+  name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+  var regexS = "[\\?&]"+name+"=([^&#]*)";
+  var regex = new RegExp( regexS );
+  var results = regex.exec( window.location.href );
+  if( results == null )
+    return "";
+  else
+    return results[1];
+}
+
+var browserType;
+if (document.layers) {browserType = "nn4"}
+if (document.all) {browserType = "ie"}
+if (window.navigator.userAgent.toLowerCase().match("gecko")) {browserType= "gecko"}
+
+function hide2(szDivID)
+{
+if (browserType == "gecko" )
+     document.poppedLayer = eval('document.getElementById(szDivID)');
+else if (browserType == "ie")
+     document.poppedLayer = eval('document.getElementById(szDivID)');
+else
+     document.poppedLayer = eval('document.layers[szDivID]');
+document.poppedLayer.style.display = "none";
+}
+
+function show2(szDivID)
+{
+if (browserType == "gecko" )
+     document.poppedLayer = eval('document.getElementById(szDivID)');
+else if (browserType == "ie")
+     document.poppedLayer = eval('document.getElementById(szDivID)');
+else
+     document.poppedLayer = eval('document.layers[szDivID]');
+document.poppedLayer.style.display = "inline";
+}
+
+function doSaveAs()
+{
+if (browserType != "ie") {alert("Not IE. You must right click and select 'Save page as...'")}
+if (document.execCommand) {document.execCommand("SaveAs");}
+};
+
+var startx = %startx%; //based on word #1 across or down
+var starty = %starty%;
+var LetterPosArray = new Array(startx,starty);
+var OldLetterPosArray = new Array(startx,starty);
+var horizvert = 0; //0 is  horiz 1 is vert
+var OldClue = '';
+var CurrentFocus = ''; //ID Name  where letters will be inserted
+var CurrentClass = 'tdwhiteclass'; //for remembering the class to return the square too
+var NthPosition = 0; //so we can find the next square to type a letter into
+var CurrentPos = new Array(startx,starty); //CURRENTLY HIGLIGHTED BOX COORDINATES
+
+function ToggleHV()
+{
+if (horizvert == 0) {horizvert=1}
+else {horizvert=0}
+}
+
+function ClearBox(cell)
+{
+if (CurrentFocus != "") {document.getElementById(CurrentFocus).className = CurrentClass;} //restore the class name to white
+}
+
+function HighlightBox(cell)
+{
+CurrentClass = document.getElementById(cell).className; //store the class name of the square in the process of being focused
+document.getElementById(cell).className = 'tdselectedclass'; //select/focus the square
+CurrentFocus = document.getElementById(cell).getAttribute('ID');
+}
+
+function HighlightNextBox()
+{
+var xpos = CurrentPos[0];
+var ypos = CurrentPos[1];
+var cell = "cell_" + xpos + "_" + ypos;
+
+ClearBox(cell);
+NthPosition = NthPosition + 2;
+if (NthPosition >= LetterPosArray.length) {NthPosition = 0}
+xpos = LetterPosArray[NthPosition];
+ypos = LetterPosArray[NthPosition+1];
+var cell = "cell_" + xpos + "_" + ypos;
+HighlightBox(cell);
+}
+
+function HighlightClue(theword)
+{
+if (OldClue != "")
+        {document.getElementById(OldClue).className = 'cluesCleared'} //clear old clue
+document.getElementById(theword).className = 'cluesSelected'; //select/focus the clue
+OldClue = theword;
+}
+
+function HighlightWord(LetterPosArrayArg)
+{
+//white out old word
+for (i = 0; i < OldLetterPosArray.length; i = i + 2)
+        {
+        var t = "cell_" + OldLetterPosArray[i] + "_" + OldLetterPosArray[i+1];
+        document.getElementById(t).className = 'tdwhiteclass';
+        }
+//set current word to old word so we can white it out later
+OldLetterPosArray = LetterPosArrayArg.slice();
+//highlight the current word
+for (i = 0; i < LetterPosArrayArg.length; i = i + 2)
+        {
+        var t = "cell_" + LetterPosArrayArg[i] + "_" + LetterPosArrayArg[i+1];
+        document.getElementById(t).className = 'tdwordselectedclass';
+        }
+}
+
+function FindNthPosition(xpos,ypos,LetterPosArrayArg)
+{
+for (i = 0; i < LetterPosArrayArg.length; i = i + 2)
+        {
+        if ( (xpos == LetterPosArrayArg[i]) && (ypos == LetterPosArrayArg[i+1]) ) {return(i);};
+        }
+};
+
+function choose(word , xpos , ypos , LetterPosArrayArg)
+{
+CurrentPos = [xpos,ypos];
+//CurrentPos = [LetterPosArrayArg[0],LetterPosArrayArg[1]];
+var cell = "cell_" + xpos + "_" + ypos; //generate text class ID for the chosen square
+ClearBox(cell);//clear old box
+LetterPosArray = LetterPosArrayArg.slice();
+HighlightClue(word);
+HighlightWord(LetterPosArray);
+HighlightBox(cell);
+NthPosition = FindNthPosition(xpos,ypos,LetterPosArray);
+};
+</SCRIPT> <SCRIPT TYPE="text/javascript">
+  
+function GetxmlHttpObject(){
+var xmlHttp = null;
+if(window.XMLHttpRequest) //code for IE7, Firefox, Mozilla, etc.
+	{xmlHttp=new XMLHttpRequest();}
+else
+	{ 
+	try
+		{xmlHttp=new ActiveXObject("Msxml2.XMLHTTP");} //code for IE5, IE6
+	catch(e)
+		{
+		try
+			{xmlHttp=new ActiveXObject("Microsoft.XMLHTTP");}
+		catch(ee)
+			{xmlHttp=null;}
+	}
+} 
+if (xmlHttp==null)
+  {
+  alert("Your browser does not support AJAX.");
+  return;
+  }
+return xmlHttp;
+}
+
+function do_nothing(){}
+
+function ajax_send_uri(uripath , handleresponstetextfunction , argstring)
+{
+var query = uripath + '?nocache=' + Math.random() + argstring; //must have '?nocache=' + Math.random() to thwart IE cach issues if set to auto
+var xmlHttp = GetxmlHttpObject();
+xmlHttp.open("GET" , query , true);
+xmlHttp.onreadystatechange = 
+	function()
+		{
+		if (xmlHttp.readyState != 4) {return;}
+		responseText = xmlHttp.responseText;
+		if(xmlHttp.status != 200)
+			{responseText = '';document.getElementById("networkstatus").innerHTML = 'Network is down. You are playing with yourself. Changes will not be saved.';} //if error we don't want to return error text	
+		else 
+			{document.getElementById("networkstatus").innerHTML = 'Network OK';}	
+		handleresponstetextfunction(responseText);
+		};
+xmlHttp.send(null);
+delete xmlHttp;
+}
+
+var lastchattext;
+SkipDelay = 5;
+var SkipOneChatAlert = SkipDelay;
+function ajax_get_chat()
+	{
+	ajax_send_uri("%archiveurl%/%uid%/%game%/chat.txt" , update_chat , '');
+	SkipOneChatAlert--;
+	var returnedtext = document.getElementById("chatbox").innerHTML;
+	if ((returnedtext != "") && (lastchattext != document.getElementById("chatbox").innerHTML) && (SkipOneChatAlert < 1))
+				{
+				alert('Incoming chat update');
+				SkipOneChatAlert = SkipDelay;
+				}
+	lastchattext = returnedtext;
+	}
+
+var maxScroll=0;
+function update_chat(returnedtext)
+	{
+	if( returnedtext && returnedtext != "")
+		{
+		document.getElementById("chatbox").innerHTML = returnedtext;
+		if(document.getElementById("chatbox").scrollTop >= maxScroll) //a line was added
+			{
+			document.getElementById("chatbox").scrollTop += 999999; //go to bottom and then some in case others add text
+			maxScroll = document.getElementById("chatbox").scrollTop; //set current value of virtual text box height
+			}
+		}
+	}
+
+function send_chat(sendtext)
+	{
+	SkipOneChatAlert = SkipDelay;
+	if (document.getElementById("chatname").value == '') {document.getElementById("chatname").value = 'Player ' + Math.floor(Math.random()*99+1)}
+	ajax_send_uri('%scripturl%/chat.cgi' , do_nothing , '&chatline=' + escape(sendtext) + '&uid=%uid%' + '&game=%game%'  + '&chatname=' + document.getElementById("chatname").value);	
+	document.getElementById("chatline").value = '';	
+	document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight + 100;	
+	}
+
+function send_cell_update(k)
+	{
+	var letter = String.fromCharCode(k);
+	document.getElementById(CurrentFocus).innerHTML = letter;//place keystroke on crossword
+	ajax_send_uri('%scripturl%/cellupdate.cgi' , do_nothing , '&cell=' + CurrentFocus + '&letter=' + letter + '&uid=%uid%' + '&game=%game%');	
+	HighlightNextBox();//go to next box	
+	}
+	
+function get_crossword_updates()
+	{
+	ajax_send_uri('%archiveurl%/%uid%/%game%/out.txt' , processupdates , '');	
+	}
+	
+function processupdates(returnedtext)	
+	{
+	//now fill in cells.....	
+	if( returnedtext && returnedtext != "")
+		{
+		var cellletterarray = returnedtext.split("|");
+		var i;
+		for(i = 0 ; i< cellletterarray.length - 1 ; i++)
+			{
+			cellarray = cellletterarray[i].split("=");
+			document.getElementById(cellarray[0]).innerHTML = cellarray[1];
+			}
+		}
+	}
+	
+var count = '';
+function continue_main()
+	{
+	ajax_get_chat(update_chat);
+	get_crossword_updates();
+	//count += 1;
+count = count + '.';
+	document.getElementById("counter").innerHTML = count;
+if (count == '..........') {count = ''}
+	setTimeout("continue_main();",1000);
+	}
+	
+function sendmail()
+		{
+		var to = document.getElementById("to").value ;
+		var from = document.getElementById("from").value ;
+		ajax_send_uri('%scripturl%/invite.cgi' , do_nothing , '&game=%game%&from=' + from + '&to=' + to);		
+		}	
+
+function CreateBookmarkLink() 
+	{
+	var title = "Crossword game %game%"; 
+	var url = "%archiveurl%/%uid%/%game%";
+	if (window.sidebar) 
+ 		{ // Mozilla Firefox Bookmark
+		window.sidebar.addPanel(title, url,"");
+		} 
+	else if( window.external ) 
+		{ // IE Favorite
+		window.external.AddFavorite( url, title); 
+		}
+	else if(window.opera && window.print) 
+		{ // Opera Hotlist
+		return true; 
+		}
+ 	}
+
+</SCRIPT> 
+	 
+	 
+	 <!--
+	 <DIV ID="fbhide1"> 
+		<TABLE CELLPADDING="3" CELLSPACING="0" BGCOLOR="#FFFFFF" BORDER="1"> 
+		  <TR> 
+			 <TD>&nbsp;<A
+				ONCLICK="show2('Instructions');hide2('ShowInstructions');show2('HideInstructions');"
+				HREF="#self" ID="ShowInstructions">Show Instructions</A><A
+				ONCLICK="hide2('Instructions');show2('ShowInstructions');hide2('HideInstructions');"
+				HREF="#self" ID="HideInstructions">Hide Instructions</A>&nbsp;</TD> 
+			 <TD> &nbsp;<A HREF="#"
+				ONCLICK="if (confirm('Are you sure? Be sure to bookmark the current puzzle first.')) {window.open('%scripturl%','_self');}
+else{};">Create
+				another crossword</A>&nbsp;</TD> 
+			 <TD> &nbsp;<A HREF="#" ID="InviteLink"
+				ONCLICK="hide2('InviteLink');show2('InviteForm');Return=false;">Ask a friend to
+				help solve your Crosswod Puzzle</A>&nbsp;</TD> 
+		  </TR> 
+		</TABLE></DIV><SCRIPT>hide2("fbhide1");</SCRIPT> <SCRIPT>hide2('HideInstructions');</SCRIPT> 
+	 <DIV ID="Instructions"> 
+		<P>Edit this crossword by clicking on a square and entering a letter.<BR>
+		  <A HREF="#" ONCLICK="CreateBookmarkLink();">Add to Favorites</A> to complete it
+		  at a later time. (<B>.html extension</B>)<BR>Or <A
+		  HREF="window.print()">Print</A> it. You may want to Show Answers at the bottom
+		  of this page first. If your printer is not printing the black squares, your
+		  print drivers may be in a printer 'econo' or 'toner save' mode. Firefox has the
+		  ability to print color backgrounds. Microsoft's IE does not allow it. Adjust
+		  your printer settings accordingly. </P></DIV> <SCRIPT>
+hide2('Instructions');
+</SCRIPT> 
+	 <FORM ID="InviteForm"> 
+		<P>From: <INPUT TYPE="TEXT" NAME="Text1" ID="from"> To:
+		  <INPUT TYPE="TEXT" VALUE="friends@email.com" ID="to">
+		  <INPUT TYPE="BUTTON" NAME="Button2" VALUE="Invite"
+           			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
+		  </P> </FORM><SCRIPT>
+hide2('InviteForm');
+</SCRIPT> 
+	 <P></P> 
+
+
+-->
+	<H4 ALIGN="CENTER"> Game: %game% (%name%)</H4> 
+	<DIV ALIGN="CENTER"> 
+	  <TABLE CELLPADDING="0" CELLSPACING="0"> 
+		<TR> 
+		  <TD> 
+			<DIV ID="networkstatus" ALIGN="JUSTIFY">Network Status</DIV></TD> 
+		  <TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD> 
+		  <TD> 
+			<DIV ID="counter" ALIGN="JUSTIFY">..........</DIV></TD> 
+		</TR> 
+	  </TABLE></DIV> 
+	 
+
+	<!--Must be outside of table or IE will not refresh!!!-->
+	<DIV ID="chatbox" CLASS="chatbox">Chat Box</DIV> <!--Must be outside of table or IE will not refresh!!!-->
+	<DIV ALIGN="CENTER"> 
+	  <FORM> 
+		<P><INPUT TYPE="TEXT" ID="chatline"
+		  ONKEYPRESS="if (event.keyCode == 13){send_chat(document.getElementById('chatline').value);return false;};"
+		  SIZE="25" ONFOCUS="CurrentFocus='';//send keystrokes to bit bucket">
+		  <INPUT TYPE="SUBMIT"
+		   ONCLICK="send_chat(document.getElementById('chatline').value);return false;"
+		   VALUE="Chat">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		  <INPUT TYPE="BUTTON" NAME="Button1" VALUE="Clear"
+		   ONCLICK="document.getElementById('chatbox').innerHTML = '';ajax_send_uri('%scripturl%/chat.cgi' , do_nothing , '&uid=%uid%&game=%game%&clear=1');return false;">
+		  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name:
+		  <INPUT TYPE="TEXT" NAME="chatname" ID="chatname"></P> </FORM></DIV> 
+	<P ALIGN="CENTER">Crossword</P> 
+	<DIV ALIGN="CENTER"> 
+	  <TABLE CELLPADDING="3" CELLSPACING="0"> 
+		<TR> 
+		  <TD><%puzzle%></TD> 
+		  <TD> </TD> 
+		</TR> 
+	  </TABLE></DIV> 
+	<DIV ALIGN="CENTER"> 
+	  <TABLE CELLPADDING="3" CELLSPACING="0"> 
+		<TR VALIGN="TOP"> 
+		  <TD VALIGN="TOP">Across:<HR> <%across%></TD> 
+		  <TD VALIGN="TOP"> Down:<HR> <%down%></TD> 
+		</TR> 
+	  </TABLE></DIV> 
+	<P ALIGN="CENTER"><A ONCLICK="show2('Answers')" HREF="#self">Show
+	  Answers</A>&nbsp;&nbsp;&nbsp;<A ONCLICK="hide2('Answers')" HREF="#self">Hide
+	  Answers</A></P> 
+	<P ALIGN="CENTER">Answers</P> 
+	<DIV ID="Answers" ALIGN="CENTER"> 
+	  <P><%answers%>
+	  </P></DIV> 
+	<DIV ID="fbhide3" ALIGN="CENTER"> 
+	  <P>Your puzzle has been archived at: <A
+		HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> .<BR><A
+		HREF="#" ONCLICK="CreateBookmarkLink();">Add to Favorites</A><BR>other
+		Crossword puzzles are at: <A HREF="%archiveurl%/%uid%/">Other Crossword
+		Puzzles</A><BR>or create a <A HREF="/cgi/crosswords/">New
+		Crossword</A></P></DIV><SCRIPT>//hide2("fbhide3");</SCRIPT> 
+	<P></P> <SCRIPT>
+hide2('Answers');
+</SCRIPT> 
+	<DIV ALIGN="CENTER"> <B>Crossword Script by Emogic</B><BR> </DIV> <SCRIPT>
+//set our name for the chat if passed from facebook!
+var $name = gup("name");
+if (uid == 'common') //hide things when in facebook. or show when not in facebook
+	{
+	//show2("fbhide1");
+	//show2("fbhide3");	
+	}
+else
+	{
+	document.getElementById('chatname').value = unescape($name); //set chat name if in facebook
+	}	
+
+setTimeout("continue_main();",1000);
+send_chat(unescape($name + ' joined the game.'));
+</SCRIPT>
+	</BODY>
+</HTML>

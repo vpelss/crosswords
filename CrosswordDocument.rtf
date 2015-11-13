@@ -1,0 +1,334 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033\deflangfe1033{\fonttbl{\f0\fswiss\fprq2\fcharset0 Arial;}{\f1\fnil Courier New;}{\f2\fnil\fcharset0 Courier New;}}
+{\colortbl ;\red0\green0\blue255;\red255\green0\blue0;\red0\green0\blue0;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\nowidctlpar\ri-1440\f0\fs20 See: {\field{\*\fldinst{HYPERLINK "http://thesis.cambon.dk/"}}{\fldrslt{\ul\cf1 http://thesis.cambon.dk/}}}\f0\fs20  for many of these concepts.\par
+\par
+\ul Why PERL?\par
+\ulnone\par
+PERL is not known for it's speed. It also has high memory overhead for variable management. But it does have a few benefits. Regular expressions are powerful and fast. Hash variables allow for an easy way to create unique values. They also make it easy to search and lookup values.\par
+\par
+PERL is ubiquitous.\par
+PERL is elegant.\par
+I just like PERL.\par
+\par
+\ul Some things I have learned\ulnone\par
+\par
+1. The bigger the database the better.\par
+2. Letter searches are not the answer as there are too many combinations and for each lay of a letter you only check for two words of the common letter. So even with a fast calculation time for each letter, all the recursion adds up. Laying a word and checking that all the croossing words will have a possible word, although much slower, has fewer recursive calls. On most test scenerios I had tried, laying words was faster.\par
+3. Each time you lay a word, you must ensure that all it's crossing word positions will be able to fit a word. If not, you will preform too many recursions. The code is more complex, but it is worth it.\par
+4. Your path algorithm for laying words must ensure that each following word in your path crosses the previous one. This helps with wasted recursions in the case of doing all across words, then checking if the down words are valid.\par
+5. Optimal (not naive) backtracks help a lot (x100 speed increases or more in some cases).\par
+\ul\par
+Grid\par
+\ulnone\par
+The grid templates are text files containing rows made up of 'o' and 'x'.\par
+'x' = black squares\par
+'o' = empty squares\par
+They were chosen as they are the same size and this gives an easily visual representation of the actual grid in notepad.\par
+\par
+In the script they are retained as such, and do not conflict, as the inserted letters will always be capital letters.\par
+\par
+eg:\par
+xooooo\par
+ooooxo\par
+ooooxo\par
+\ul\par
+Searches\ulnone\par
+\par
+There are many types of searches we can perform to try and determine what word or letter will fit on our crossword.\par
+\par
+\b Prefix / Linear Seraches : Return the next potential letters after a given series of letters\par
+Note: This was for a letter by letter search and is no longer used.\b0\par
+\par
+Given the prefix letters for a word, return the next possible letters.\par
+eg: given 'boa--' found in the space for a 5 letter word, the next letter might be t or r.\par
+This is useful only if you plan to build words from beggining to end. It will not allow for filling in letters in a random order.\par
+\par
+Method 1. Intitially I built a chain of hash references and required the word length also. This required that we follow, or loop through, the chain of hash references. It was more complex but was still fast. \par
+$nextLetter[numberOfLettersInWord] would point to a list of hashes where the keys were possible first letters. So a "keys %nextLetter[5]" would return all the first letters of possible 5 letter words. If we chose the letter 'b', and referenced $nextLetter[5]\{b\} we would get a list of hash references to all the potential 2nd letters of 5 letter words that start with 'b'.\par
+\par
+\cf2 *Method 2\cf0 . Then I decided that it was simpler to implement and slightly faster to just use masks using prefixes. That would eliminate the need to supply the word length (as the mask is the right length). And no loops throgh a  series of hashes was necessary.\par
+$linearWordSearch\{CAo\} returned ( $\{'T'\} , $\{'R'\} , $\{'B'\} , $\{'N'\} )\par
+I did not return a list of letters. I return a list of keys. This simplifies the list creation ensuring there are no duplicate letters\par
+@letters = keys %\{$linearWordSearch\{$mask\}\};\par
+Note: the mask must be a prefix mask only. ie: HIGoooooo\par
+It is 1.5 times faster than the old way.\par
+Memory storage is about the same.\par
+\par
+\b Mask Searches : @words = &\cf3 WordsFromMask($mask) $mask = \lquote GOoD\rquote  :  Return a list of potential words for a given mask\cf0\par
+\b0\par
+Method 1. For a given mask (eg \cf3 GOoD\cf0 ), cycle through all the letters. For each letter return a list (built before hand) of all words, the same length as the mask, that have that letter in that position. Do that for all all letters that we have in the mask. Then we compare all the lists and keep the words that show up in all the lists. \par
+It was complex, and was not all that fast as we had to repaetedly compare potentially large lists of words.\par
+It's memory use was average to high as a  word string was stored multiple times, at least as many times as letters in the word. Eg DOG was stored 3 times, once for each letter.\par
+\par
+\cf2 *Method 2\cf0 . Words of Length String. For each word length we have created a large comma delimited string consisting of all the words of that length before hand. We use regular expressions to search that string for the mask and return the list of words.\par
+The memory storage is as efficient as one could hope for. eg DOG is only stored once in the comma delimited words of 3 letter string.\par
+The speed is surprizingly fast for searching long strings.\par
+\par
+my $tempMask = $mask;\line $tempMask =~ s/$unoccupied/\\./g; #make a mask of 'GO$unoccupiedT' into 'GO.T' for the regexp\line my $wordLength = length($tempMask);\line @word_list = ($WordsOfLengthString[$wordLength] =~ /($tempMask),/g);\par
+\par
+Method 3. Binary Mask. For each word we build a binary mask. Then for each mask we create a list of words that belong to that mask.\par
+Eg: CAT -> CAT , CAo , CoT , Coo , oAT , etc\par
+In theory it should be very fast. But it is only slightly faster than the Words of Length String word search in some cases. \par
+Copying or accessing the list takes the majority of the time and therefore is not much faster for cases where the list returned will be large. Small returned lists are faster as the Method 2 still needs to search the complete comma delimited string. \par
+So smaller returned word lists will show a speed improvement with this meathod.\par
+However, this method uses \b large\b0  amounts of memory as longer words cause exponential memory growth.\par
+It also takes a long time to build the database as we need to create many (grows exponentially as the word is longer) binary masks (and associated word lists) for every word in the dictionary. \par
+\par
+\b Possible words from letter lists Search (meta search) : choosing words that fit based on the crossing words.\b0\par
+\par
+A routine that takes a list of possible letters (based on all the crossing word masks) for each position in a word. \par
+It's output is a list of words that can be made with said letters.\par
+@words = &WordsFromLetterLists(['C','D','F','T','Z'] , ['E','R','T','Y','O'] , ['T','R','E','W','Q','Z']);\par
+Used if we check all possible letters at the same word position of crossing words. Then we can find the possible perpendicular words that are possible for this spot\par
+Obviously it takes a lot of processing time as we are searching multiple lists of words for words common to all the lists.\par
+\par
+----o---\par
+----o---\par
+----o---\par
+\par
+Even though this can take up to 250 times longer than a simple mask word search (letting a simple recursive routine figure out the errors), and 833 times slower than the letter search it is faster on many types of grids as it looks at blocks of letters, not just crossing words. Therefore it notices errors sooner and avoids a lot of wasted blind recursions. \par
+\par
+Note: It really shines if your walking/search path ensures that each following word crosses the previous one(s).\par
+\par
+\ul Optimum Backtrack for Word by Word Builds\ulnone\par
+\par
+By adding an optimpum backtrack check and routine for this search, I have improved the generation time by a factor of 2500 times or more in "some" cases. If a word attempt fails, I make a list of the crossing word positions and the adjacent words positions (above,below or left/right). Those are the words that influence the word positions that failed. Then I backtrack until I hit one of the word positions in that list. You must stop on the first one encountered or you risk loosing possible puzzle solutions.\par
+\par
+Grids that do not seem to benifit are the Double Word Grids with 100% interlock.\par
+\par
+eg:\par
+Letter Search - letter by letter routine : 0.00006 sec per call\par
+Word Searck Mask: 0.0002 sec per call\par
+Word Search Meta : 0.05 sec per call\par
+Word Search Meta with optimum backtrack: 0.09 sec per call\par
+\par
+\ul Data Structures\ulnone\par
+\par
+\b %WordListBy_WordLength_Letter_LetterPosition\par
+Not used: I use @WordsOfLengthString, masks and regex\b0\par
+set $WordListBy_WordLength_Letter_LetterPosition[$wordLength][ord($letter)][$LetterPosition]\{$Word\} = 1\par
+@words = keys %\{$WordListBy_WordLength_Letter_LetterPosition[$wordLength][ord($Letter)][$LetterPosition]\}\par
+a hash, instead of a list, is used so we don't have duplicate words\par
+\par
+\b %linearWordSearch \par
+Not used: letter by letter\b0\par
+very fast for finding the next possible letters in a word\par
+$linearWordSearch\{mask\}\{key1 , key2\} and it will return a list of keys (so there are no duplicates) representing the next possible letters.\par
+@letters = keys %\{$linearWordSearch\{$mask\}\};\par
+mask must be a prefix mask ie: TOOLooooo\par
+\par
+\b @WordsOfLengthString\b0\par
+$WordsOfLengthString[$wordLength] = "$WordsOfLengthString[$wordLength]$Word,"; #build a comma delimited string of each possible word length\par
+@WordsFromLetters = split (',' , $WordsOfLengthString[$wordLength]);\par
+$tempMask = $mask;\par
+$tempMask =~ s/$unoccupied/\\./g; #make a mask of 'GO$unoccupiedT' into 'GO.T' for the regexp\par
+$wordLength = length($tempMask);\par
+@word_list = ($WordsOfLengthString[$wordLength] =~ /($tempMask),/g);\par
+\par
+How are words and letters are stored on board? One is word centric and one is letter centric.\par
+both are used at same time and both can be beneficial in different situations.\par
+\par
+\b @puzzle : letter centric\b0\par
+the puzzle with the words inserted. array[][] returns a hash as we may want to store more data than just the cell letter in the future.  \par
+$puzzle[$x][$y]->\{Letter\}\par
+\par
+\b @allMasksOnBoard \endash  word centric\b0\par
+all words on board whether complete or not \par
+$allMasksOnBoard[word number][dir 0=across 1=down] many will be undef\par
+1 is the first word number\par
+\par
+\b @LetterPositionsOfWord and @ThisSquareBelongsTowordNumber\b0  map word numbers to cell positions and vice versa.\par
+\par
+\b @LetterPositionsOfWord\b0\par
+$LetterPositions[word #][dir] an array of all the word letter positions [[x,y],[x,y]....]\par
+$LetterPositions[$numberCount][$Dir] = [@TempLetterPositions]; #an annonomyous array reference of $x,$y pairs of all letters in the word\par
+@WordLetterPositions = @\{$LetterPositions[$wordNumber][$Dir]\}\par
+Can be used to find all crossing words fast with @ThisSquareBelongsTowordNumber and using the other $dir\par
+\par
+\b @ThisSquareBelongsToWordNumber\b0\par
+$ThisSquareBelongsToWordNumber[x][y][dir] returns the word number this square belongs too\par
+It can be used to find the crossing word number\par
+$wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][$dir]\par
+$crossingwordNumber = $ThisSquareBelongsToWordNumber[$x][$y][not $dir]\par
+\par
+\b @PositionInWord\b0\par
+$PositionInWord[x][y][dir] returns the pos of letter in the word this square belongs to starting at 0\par
+$NthLetterPosition = $PositionInWord[$x][$y][$dir]\par
+\par
+\b @NextWordPositionsOnBoard\b0\par
+all words position on board used for cycling through word placements, etc\par
+ [\{wordNumber => $wordNumber, Dir => $Dir\},\{\},\{\}...]\par
+$wordNumber = $NextWordPositionsOnBoard[index]\{wordNumber\} \par
+$dir = $NextWordPositionsOnBoard[index]\{Dir\}\par
+recommend push and pop when using recursive routines\par
+\par
+\b @nextLetterPositionsOnBoard\par
+Not used: letter by letter search\b0\par
+all letter position on board used for cycling through letter placements, etc\par
+[\{x => $x, y => $y\} , , ]\par
+$x = $nextLetterPositionsOnBoard[index]\{x\} \par
+$y = $NextWordPositionsOnBoard[index]\{y\}\par
+recommend push and pop when using recursive routines\par
+\par
+\b %wordsThatAreInserted\b0\par
+$wordsThatAreInserted\{word\} = 1 or undef\par
+helps prevent duplicates on the board\par
+\par
+\b %wordListByMask\b0\par
+@words = keys $WordListByMask\{oYo\} \par
+created by taking each word, then creating a binary mask for the word and\par
+$WordListByMask\{ooRo\}\{WORD\}=1\par
+$WordListByMask\{WoRo\}\{WORD\}=1 etc\par
+exponentially huge database but very fast search for words fitting a mask or pattern\par
+\par
+\b %mostFrequentLetters\par
+Not used: letter by letter search\b0\par
+used as @\{ $mostFrequentLetters\{$wordLength\}\{$letterPos\} \}\par
+contains an ordered list of the possible letters at \{$wordLength\}\{$letterPos\} and ordered from less frequent to most frequent\par
+\par
+\b @letterFrequency\b0  = (E,T,A,O,I,N,S,R,H,D,L,U,C,M,F,Y,W,G,P,B,V,K,X,Q,J,Z)\par
+\b Not used: letter by letter search\b0\par
+a list of the most common letters first to last\par
+\par
+\b %backTo\{x->X , y->Y\}\par
+Not used: letter by letter search\b0\par
+global target used for optimal backtracking.\par
+$backTo\{x\} and $backTo\{y\}\par
+\par
+\b %wordlengths\b0\par
+Used to identify word lengths possible on the grid so we only load words we need.\par
+This saves time and memory.\par
+$wordLength\{6\} = 1. \par
+\par
+\b $padChar\b0  \par
+= 'x'\par
+\par
+\b $unoccupied\b0\par
+ = 'o'\par
+\par
+\b %clues\par
+\b0 $clue $clues\{$word\}\par
+\par
+\ul Word Lists\ulnone\par
+\par
+# of Letters\tab XW Express\tab Extra\tab\tab Clues\par
+\par
+2\tab\tab 27\tab\tab 30\tab\tab 85\par
+3\tab\tab 640\tab\tab 788\tab\tab 4461\par
+4\tab\tab 2273\tab\tab 2743\tab\tab 11652\par
+5 \tab\tab 3468\tab\tab 5045\tab\tab 20235\par
+6\tab\tab 4465\tab\tab 6546\tab\tab 24496\par
+7\tab\tab 4905\tab\tab 7129\tab\tab 28296\par
+8\tab\tab 4730\tab\tab 6636\tab\tab 27650\par
+9\tab\tab 4130\tab\tab 5366\tab\tab 24553\par
+10\tab\tab 2681\tab\tab 3572\tab\tab 24344\par
+11\tab\tab 1677\tab\tab 2221\tab\tab 19815\par
+12\tab\tab 823\tab\tab 1061\tab\tab 13266\par
+13\tab\tab 412\tab\tab 614\tab\tab 12613\par
+15\tab\tab 135\tab\tab 185\tab\tab 9597\par
+16\tab\tab 0\tab\tab 1\tab\tab 2697\par
+17\tab\tab 0\tab\tab 0\tab\tab 1940\par
+18 \tab\tab 0\tab\tab 0\tab\tab 1018\par
+19\tab\tab 0\tab\tab 0\tab\tab 930\par
+20\tab\tab 0\tab\tab 0\tab\tab 3041\par
+total\tab\tab 30405\tab\tab 42034\tab\tab 251578\par
+lines\tab\tab 30418\tab\tab 53899\tab\tab 4325826\par
+time\tab\tab 4 s\tab\tab 5 s\tab\tab 220 s 100s loading file 120s processing\par
+\par
+Bigger databases make for quicker solving but much longer prep.\par
+The 'Clues' data base allows for a 6x6 grid solve in 68 sec, but load and preprocessing time is 220 sec. A 6x6 is not solveable with the smaller databases.\par
+\par
+\par
+\ul Walks\ulnone  \par
+\par
+\b Flat\b0 : Horizontal words. It seems to be the fastest in a fully connected square.\par
+\par
+\b Diagonal\b0 : Slow.\par
+\par
+\b Switchback\b0 : Alternating horizontal and vertical word and word parts along diagonal axis. Almost as fast as flat, but no benefits.\par
+\par
+\b My Cross Walk:\b0  I generated my own walk that beats the pants off the basic ones when using recursive word search algorithms that lay a word based on all the possible crossing words for that word's position.  I start with the very first word in the top right (although any start position could be used). Then I add all the crossing words to this starting word. Then I find and add all the crossing words to those words, etc. I only add a word once. This tends to backtrack very efficiently even with naive backtracking.\par
+\par
+\b Comparisons\b0\par
+\par
+letter by letter fill\par
+grid 6 x 6 \par
+\par
+walk\tab naive\tab optimal\tab time\tab calls\tab\tab optimal saves\par
+flat\tab x\tab\tab 24s\tab 104366\tab\tab 0\par
+diag\tab x\tab\tab 182s\tab 644016\tab\tab 0\par
+switch\tab x\tab\tab 31s\tab 131432\tab\tab 0\par
+flat\tab\tab x\tab 23s\tab 104266\tab\tab 128\par
+diag\tab\tab x\tab 129s\tab 445712\tab\tab 226531\tab\par
+switch\tab\tab x\tab 31s\tab 125555\tab\tab 13182\par
+\par
+\ul Optimum Backtrack : for letter by letter builds : No longer used\ulnone\par
+\par
+For letter searches our backtrack options are :either go to the previous horizontal cell or the vertical cell above. \par
+\par
+Note that both the horizontal and vertical pre words will have valid letters to contribute to the cell we are in. If that was not the case we would have backtracked at that point. Said another way: If there are pre words laid, that can only occur if there are possible letters to follow.\par
+\par
+So we backtrack only if the \b combination\b0  of possible horizontal and vertical letters have no common letters, that is the only time a letter will not be possible in that cell. This is the case when we are moving forward and laying new letters.\par
+\par
+If, however, we run into a cell that has no common horizontal or vertical letters, then we must backtrack. If, when we are backtracking, our list of potential letters for that cell is empty (as we have used them all on previous attempts) or there was only one letter possible, we must backtrack even further. Potentially there could be a long chain of such cells forcing us to backtrack a long way.\par
+\par
+If we are mid way through laying a horizontal word and we cannot lay a letter, we \b must\b0  use a naive backtrack (go to the preceding horizontal cell) as changing it might allow us to lay a letter in that cell. If we cannot lay a letter in the first cell when laying a horizontal word, we can do an optimal backtrack to the vertical cell above. We can only do this while moving forward, not if we have backtracked from the 2nd letter in the horizontal word! If we do this, we loose all the combinations in the word above that may have allowed the failing letter further in the word to work. This prunes the search tree and we loose potential valid puzzle combinations.\par
+\par
+In summary, there are 2 targets we can backtrack too, either the preceding horizontal or vertical cell. An optimal backtrack takes us to the first preceding horizontal or vertical cell we encounter in the backtrack. We can only optimal backtrack if we are moving forward, laying cells in the walk, never when backtracking from a cell. \par
+\par
+Logic: Only backtrack (optimal) to preceding horizontal or vertical cell (which ever you hit first) if you are moving forward. Otherwise, just backtrack once (naive).\par
+\par
+\ul Dictionary and Clues\ulnone\par
+\par
+For huge word lists (required for big grids) our comined dictionary and clue database list is ridiculoously huge. It will crash our system by using all our RAM. As I wanted to use pure text databses, this posed a problem. My solution was to have a word only database (no clues) used to fill the grid. For the clues, I pregenerate a list of text files coresponding the word's clues. So  'jude.txt' would contain:\par
+Name in a Beatles song\par
+Law of "Sleuth"\par
+New Testament book\par
+Saintly Thaddaeus\par
+.....\par
+\par
+However this causes disk space concernsas there are 250,000 tiny files that take up gigs of disk space. Now it is difficult to upload to the server due to the number of individual files!\par
+\par
+What I did to fix the disk issue, was to create clue text files based on the words first two letters. This takes 250,000 files and converts them into 650. It takes a little longeer to load the clues, but it is not noticable.\par
+\par
+\ul Benchmarks\ulnone\par
+\par
+Based on the section on Double Word Squares at: {\field{\*\fldinst{HYPERLINK "http://en.wikipedia.org/wiki/Word_square"}}{\fldrslt{\ul\cf1 http://en.wikipedia.org/wiki/Word_square}}}\f0\fs20\par
+I feel my program is running well. The article states that 8 x 8 is arount the largest order Double Word Square to be found using dictionary words. Considering my limited dictionary and my program can create a 6 x 6 in around 3 seconds  quite frequently. I am quite happly with the outcome.\par
+\par
+\par
+\ul Ideas\ulnone\par
+\par
+focous on an efficient walk generator for any puzzle grid\par
+\par
+forward and backward linear search\par
+\par
+reference dictionary by integer so we can compare lists of integers instead of lists of word strings. will this save memory or time?\par
+\par
+use letter probabilities to sort and choose next letter to lay down. For the hassle of implementing (horiz and vert simultaneously) it seemed to perform worse.\par
+\par
+backtrack and walk in their own routines? Maybe the overhead will slow it down.\par
+\par
+storage of dictionary as data files already? JSON?\par
+\par
+fast efficient storage of database.\par
+\par
+\cf3\f1 spiral removal\line bad letter remove all immediate neighbours (square). try again. same result, larger square, etc?\line\cf0\f0\par
+\cf3\f2 each cycle calculate \f1 PossibeLetterList \b for\b0  all squares:\line good: shows trouble spots fast\line good: focus on crossing words\line bad: what to \b do\b0  about it?\line bad: When we lay a word \b or\b0  letter we need to recalculate PossibeLetterList \b for\b0  all affected crossing words\line\cf0\f0\par
+\cf3\f1 PossibeWordList \b for\b0  all squares:\line good: shows trouble spots fast\line bad: what to \b do\b0  about it?\line bad: When we lay a word \b or\b0  letter we need to recalculate PossibeLetterList \b for\b0  all affected crossing words\line\cf0\f0\par
+\cf3\f1 puzzle space is imense.\line puzzle solution is miniscule\line therefore recuirsive \b and\b0  random attempts are unlikely to work on their own\line\cf0\f0\par
+\ul Questions\par
+\ulnone\par
+Word insertions vs letter insertions?\par
+Letter is easier to check for possible letters. faster and targeted. less waste. It can do the same as word insertions if we want by just changing the walk to finish words in order.\par
+Word: Slower initially () but if we use recursive and there are big lists stored in the recursive routine we may save some time? We will still need to do a simple walk as a parallel word may easily stop perpendicular words from being layed. Solution use more complex and slower crossword  + or block routines.\par
+\par
+Are dynamic walks possible without missing possibilities?\par
+\par
+how to build a walk in a normal crossword\par
+\par
+\ul To Do\ulnone\par
+\par
+compare letter VS word insertion speeds\par
+}
+ 

@@ -1,0 +1,281 @@
+<!DOCTYPE HTML PUBLIC "-//SoftQuad Software//DTD HoTMetaL PRO 6.0::19990601::extensions to HTML 4.0//EN" "hmpro6.dtd">
+<HTML> 
+  <HEAD> <LINK REL="stylesheet" TYPE="text/css" HREF="main.css"><META
+	NAME="KEYWORDS"
+	CONTENT="Crosswords , Friends ,infinite , instant , unlimited , crossword , cross, word, generator , puzzle , script , crosswords, printable">
+	<META NAME="DESCRIPTION"
+	 CONTENT="Crosswords for Friends. Infinite Crossword Puzzle Generator Script to create Crosswords for prining or saving for use in your web browser">
+	
+	<TITLE>Emogic's Crosswords Puzzle Generator</TITLE> <SCRIPT SRC="./js/jquery-1.11.3.min.js"></SCRIPT> 
+  </HEAD> 
+  <BODY BACKGROUND="crossword.gif" STYLE="main.css"> 
+	<CENTER> 
+	  <TABLE CELLPADDING="0" CELLSPACING="1" BGCOLOR="#000000"> 
+		<TR> 
+		  <TD> 
+			<TABLE CELLPADDING="5" CELLSPACING="0" BGCOLOR="#FFFFFF"> 
+			  <TR> 
+				<TD COLSPAN="3"> 
+				  <H3 ALIGN="CENTER">Emogic's Crossword Generator</H3></TD> 
+			  </TR> 
+			  <TR> 
+				<TD
+				 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+				 VALIGN="TOP"> 
+				  <CENTER> 
+					<FORM ACTION="/cgi/crosswords/crossword.cgi" METHOD="POST"
+					 NAME="StartForm" ID="StartForm"> 
+					  <P></P> <HR> 
+					  <TABLE BORDER="0"> 
+						<TR> 
+						  <TD VALIGN="TOP"> 
+							<TABLE CELLPADDING="0" CELLSPACING="0"
+							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+							 WIDTH="100%"> 
+							  <TR> 
+								<TD VALIGN="TOP" COLSPAN="2"
+								 ALIGN="CENTER"><INPUT TYPE="radio" NAME="layouts" CHECKED="CHECKED"
+								  VALUE="grids"><U>Grid</U></TD> 
+							  </TR> 
+							  <TR> 
+								<TD VALIGN="TOP"> 
+								  <SELECT NAME="grid" SIZE="5">
+									<OPTION VALUE="3x3"
+									 CLASS="gridOption">Double Word Squares - no black squares</OPTION>
+									<OPTION VALUE="3x3"
+									 SELECTED="SELECTED">3x3</OPTION>
+									<OPTION VALUE="4x4">4x4</OPTION>
+									<OPTION VALUE="5x5">5x5</OPTION>
+									<OPTION VALUE="6x6">6x6</OPTION>
+									<OPTION VALUE="7x7">7x7</OPTION>
+									<OPTION VALUE="13x13_56_144"
+									 CLASS="gridOption">Standard USA Grids</OPTION>
+									<OPTION
+									 VALUE="13x13_56_144">13x13_56_144</OPTION>
+									<OPTION
+									 VALUE="13x13_56_144b">13x13_56_144b</OPTION>
+									<OPTION
+									 VALUE="13x13_60_146">13x13_60_146</OPTION>
+									<OPTION
+									 VALUE="13x13_62_145">13x13_62_145</OPTION>
+									<OPTION VALUE="15x15">15x15</OPTION>
+									<OPTION
+									 VALUE="16x16_80_42">16x16_80_42</OPTION>
+									<OPTION
+									 VALUE="17x17_100_48">17x17_100_48</OPTION>
+									<OPTION VALUE="19x19_116_58">19x19_116_58</OPTION>
+									<OPTION VALUE="21x21">21x21</OPTION>
+									<OPTION VALUE="21x21_126_64">21x21_126_64</OPTION>
+									<OPTION VALUE="BigOne">BigOne</OPTION>
+									<OPTION
+									 VALUE="21x27_178_92">21x27_178_92</OPTION>
+									<OPTION VALUE="23x23_160_87">23x23_160_87</OPTION>									 
+									<OPTION VALUE="13x13_22_112"
+									 CLASS="gridOption">British Style</OPTION>
+									<OPTION
+									 VALUE="13x13_22_112">13x13_22_112</OPTION>
+									<OPTION
+									 VALUE="15x15_26_138">15x15_26_138</OPTION>
+									<OPTION
+									 VALUE="21x21_44_292">21x21_44_292</OPTION>
+								  </SELECT><BR></TD> 
+								<TD VALIGN="TOP"></TD> 
+							  </TR> 
+							</TABLE><BR> 
+							<TABLE BORDER="0"
+							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+							 WIDTH="100%"> 
+							  <TR> 
+								<TD><INPUT TYPE="radio" NAME="layouts"
+								  VALUE="doublespaced"> <U>British Grids Random</U></TD> 
+							  </TR> 
+							  <TR> 
+								<TD>Width/Height
+								  <INPUT TYPE="TEXT" NAME="doublespacedwidth" SIZE="3" VALUE="7"><BR><INPUT
+								  TYPE="CHECKBOX" NAME="evenodd" VALUE="1">Even/Odd<BR><INPUT TYPE="TEXT"
+								  NAME="doublespacedpercentage" VALUE="65" SIZE="3">PercentageWhite<BR><BR><INPUT
+								  TYPE="CHECKBOX" NAME="doublespacedfull" VALUE="1"> Full (100% white)</TD> 
+							  </TR> 
+							</TABLE></TD> 
+						  <TD> 
+							<TABLE CELLPADDING="0" CELLSPACING="0"
+							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+							 WIDTH="100%"> 
+							  <TR> 
+								<TD VALIGN="TOP" COLSPAN="2"
+								 ALIGN="CENTER"><U>Clue Databases</U></TD> 
+							  </TR> 
+							  <TR> 
+								<TD VALIGN="TOP"><INPUT TYPE="radio"
+								  NAME="wordfile" CHECKED="CHECKED" VALUE="Clues_248505">
+								  <A HREF="./wordlists/Clues_248505/stats.txt" TARGET="_blank">248,505 Words</A>
+								  (recommended)<BR><INPUT TYPE="radio" NAME="wordfile" VALUE="Sympathy_31121">
+								  <A HREF="./wordlists/Sympathy_31121/stats.txt" TARGET="_blank">31,121
+								  Words</A><BR><INPUT TYPE="radio" NAME="wordfile"
+								  VALUE="Magnum_Eng_Clues_30420">
+								  <A HREF="./wordlists/Magnum_Eng_Clues_30420/stats.txt" TARGET="_blank">30,420
+								  Words</A><BR><INPUT TYPE="radio" NAME="wordfile" VALUE="CrosswordSolver_18790">
+								  <A HREF="./wordlists/CrosswordSolver_18790/stats.txt" TARGET="_blank">18,790
+								  Words</A><BR><INPUT TYPE="radio" NAME="wordfile" VALUE="CSolver_18675">
+								  <A HREF="./wordlists/CSolver_18675/stats.txt" TARGET="_blank">18,675
+								  Words</A><BR><INPUT TYPE="radio" NAME="wordfile"
+								  VALUE="CrosswordComiler_17763">
+								  <A HREF="./wordlists/CrosswordComiler_17763/stats.txt" TARGET="_blank">17,763
+								  Words</A><BR><BR></TD> 
+								<TD VALIGN="TOP"></TD> 
+							  </TR> 
+							</TABLE><BR> 
+							<TABLE BORDER="0"
+							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+							 WIDTH="100%"> 
+							  <TR> 
+								<TD><U>WalkPath</U></TD> 
+							  </TR> 
+							  <TR> 
+								<TD><INPUT TYPE="RADIO" NAME="walkpath"
+								  VALUE="crossingwords" CHECKED="CHECKED">Crossing Words<BR><INPUT TYPE="RADIO"
+								  NAME="walkpath" VALUE="zigzag">ZigZag<BR><HR><INPUT TYPE="CHECKBOX"
+								  NAME="optimalbacktrack" VALUE="1" CHECKED="CHECKED"> Optimal Backtrack
+								  (Recommended)</TD> 
+							  </TR> 
+							</TABLE><BR> 
+							<TABLE BORDER="0"
+							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+							 WIDTH="100%"> 
+							  <TR> 
+								<TD><U>Calculate Time</U></TD> 
+							  </TR> 
+							  <TR> 
+								<TD>
+								  <INPUT TYPE="TEXT" NAME="TimeLimit" VALUE="5" SIZE="5"> 10 min max</TD> 
+							  </TR> 
+							</TABLE></TD> 
+						</TR> 
+					  </TABLE> 
+					  <P><INPUT TYPE="SUBMIT" NAME="Submit1"
+						VALUE="Generate Puzzle"></P> 
+					  <P><INPUT TYPE="RESET" NAME="Reset1"
+						VALUE="Reset Defaults"></P> </FORM> </CENTER></TD> 
+				<TD
+				 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+				 VALIGN="TOP" COLSPAN="2" ALIGN="CENTER"> 
+				  <P>Behind the Curtain<BR>Updates every few seconds</P> 
+				  <FORM><TEXTAREA ROWS="25" COLS="60" ID="quickprint" NAME="quickprint"></TEXTAREA></FORM> 
+				  <DIV>Crossword Result: 
+					<DIV ID="tocrossword"
+					 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid">YOUR
+					  CROSSWORD LINK WILL SHOW HERE</DIV></DIV> 
+				  <FORM NAME="EraseForm" ID="EraseForm" ACTION="erase.cgi"
+				   ONSUBMIT="return;" METHOD="POST"> 
+					<P><INPUT TYPE="SUBMIT" NAME="Submit2"
+					  VALUE="Erase stalled crossword generation"><BR>(Use if display above does not
+					  update)</P> </FORM> 
+				  <P>All generated crosswords are in the
+					<A HREF="/crosswords/common/">Crossword Puzzle Archive</A></P></TD> 
+			  </TR> 
+			  <TR> 
+				<TD COLSPAN="3" ALIGN="CENTER"
+				 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid">
+				  
+				  <P ALIGN="CENTER"><B><FONT COLOR="#CC0000">If you have a
+					crossword grid you would like to see, send it to:
+					<A HREF="http://www.emogic.com/contact" TARGET="_blank">us</A></FONT></B>. </P>
+				  
+				  <P ALIGN="CENTER">The format must bei n the format below. The
+					white are lowwer case 'o' and the black are lower case 'x'.</P> 
+				  <PRE>oxxo
+oooo
+oooo
+oxxo</PRE></TD> 
+			  </TR> 
+			  <TR> 
+				<TD COLSPAN="3" ALIGN="CENTER"
+				 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid">
+				  
+				  <P>Thanks to:</P> 
+				  <P> <A HREF="http://www.cruciverb.com"
+					TARGET="_blank">cruciverb.com</A></P> 
+				  <P><A HREF="http://thesis.cambon.dk/"
+					TARGET="_blank">thesis.cambon.dk/</A></P> 
+				  <P>and <A HREF="http://www.otsys.com/clue" TARGET="_blank">
+					www.otsys.com/clue</A></P></TD> 
+			  </TR> 
+			</TABLE></TD> 
+		</TR> 
+	  </TABLE></CENTER> <SCRIPT>
+//get quickprint.txt often 
+function get_printout() 
+	{ 
+	// Assign handlers immediately after making the request, 
+	//and remember the jqxhr object for this request 
+	var d = new Date(); 
+	var tm = d.getTime();
+	var jqxhr = $.get( "./quickprint.txt?" + tm 
+		               , function(){ $("#quickprint").html( jqxhr.responseText ); } 
+					   , "html" 
+					  ) 
+		             //.done(function() {} ) 
+                     //.always(function() { //alert( "finished"); })					 
+			         .fail(function() { $("#quickprint").html( '...no other crosswords running...' ) } ); 
+	setTimeout( "get_printout();" , 1000 ); //keep the ball rolling
+	}; 
+					 
+// Attach a submit handler to the MyForm 
+$( "#StartForm" ).submit(
+						function(event)
+							{ 
+							// Stop form from submitting normally 
+							event.preventDefault(); 
+							// Get some values from elements on the page:
+							var $form = $( this ) , term = $form.serialize(), url = $form.attr( "action" );
+							// Send the data using post 
+							var posting = $.post( url, term ); 
+							posting.done(
+										function( data ) 
+											{
+											$("#tocrossword").html( data ); 
+											alert('Look at: Crossword Result');
+											//pause(3000);
+											} 
+										); 
+							$("#tocrossword").html( 'Wait for it.....' ); 						
+							} 
+						); 
+										
+function pause(milliseconds) {
+	var dt = new Date();
+	while ((new Date()) - dt <= milliseconds) { /* Do nothing */ }
+	}
+										
+// Attach a	submit handler to the EraseForm 
+$( "#EraseForm" ).submit( 
+						function( event ) 
+							{
+							// Stop form from submitting normally 
+							event.preventDefault(); 
+							// Get some	values from elements on the page: 
+							var $form = $( this ), term = $form.serialize(), url = $form.attr( "action" ); 
+							// Send the data using post
+							var posting = $.post( url, term ); 
+							posting.success(
+											function(data) 
+												{
+												alert(data);
+												}
+											); 
+							posting.fail(
+										function( data ) 
+											{ alert(data); }
+										);
+							posting.done(
+										function( data ) 
+											{ 
+											//alert('Stalled crossword erased'); 
+											}
+										); 
+							}
+						);
+setTimeout("get_printout();",1000); //start ball rolling 
+
+</SCRIPT> </BODY>
+</HTML>
