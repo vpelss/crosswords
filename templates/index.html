@@ -432,7 +432,7 @@ hide2('Instructions');
 		<P>From: <INPUT TYPE="TEXT" NAME="Text1" ID="from"> To:
 		  <INPUT TYPE="TEXT" VALUE="friends@email.com" ID="to">
 		  <INPUT TYPE="BUTTON" NAME="Button2" VALUE="Invite"
-           			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
+              			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
 		  </P> </FORM><SCRIPT>
 hide2('InviteForm');
 </SCRIPT> 
@@ -440,7 +440,12 @@ hide2('InviteForm');
 
 
 -->
-	<H4 ALIGN="CENTER"> Game: %game% (%name%)</H4> 
+	<H4 ALIGN="CENTER">An <A HREF="/">Emogic</A> Crossword : #
+	  <A HREF="%archiveurl%/%uid%/%game%">%game%</A></H4> 
+	<H6 ALIGN="CENTER">Your puzzle has been archived at:
+	  <A HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> |
+	  <A HREF="%archiveurl%/%uid%/">Archived Crossword Puzzles</A> |
+	  <A HREF="/cgi/crosswords/">New Crossword</A></H6> 
 	<DIV ALIGN="CENTER"> 
 	  <TABLE CELLPADDING="0" CELLSPACING="0"> 
 		<TR> 
@@ -491,15 +496,15 @@ hide2('InviteForm');
 	  </P></DIV> 
 	<DIV ID="fbhide3" ALIGN="CENTER"> 
 	  <P>Your puzzle has been archived at: <A
-		HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> .<BR><A
-		HREF="#" ONCLICK="CreateBookmarkLink();">Add to Favorites</A><BR>other
+		HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> .<BR>other
 		Crossword puzzles are at: <A HREF="%archiveurl%/%uid%/">Other Crossword
 		Puzzles</A><BR>or create a <A HREF="/cgi/crosswords/">New
 		Crossword</A></P></DIV><SCRIPT>//hide2("fbhide3");</SCRIPT> 
 	<P></P> <SCRIPT>
 hide2('Answers');
 </SCRIPT> 
-	<DIV ALIGN="CENTER"> <B>Crossword Script by Emogic</B><BR> </DIV> <SCRIPT>
+	<DIV ALIGN="CENTER"> <B>Crossword Script by <A HREF="/">Emogic</A></B><BR>
+	  </DIV> <SCRIPT>
 //set our name for the chat if passed from facebook!
 var $name = gup("name");
 if (uid == 'common') //hide things when in facebook. or show when not in facebook
@@ -514,6 +519,5 @@ else
 
 setTimeout("continue_main();",1000);
 send_chat(unescape($name + ' joined the game.'));
-</SCRIPT>
-	</BODY>
+</SCRIPT> </BODY>
 </HTML>

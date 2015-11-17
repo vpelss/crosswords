@@ -6,7 +6,6 @@
 #show sample of grids
 #explain walks
 #explain backtracking
-#new grids
 
 #allow sentences in words (strip out spaces)
 
@@ -180,6 +179,22 @@ if ($in{walkpath} eq 'crossingwords')
 if ($in{walkpath} eq 'zigzag')
      {
      &GenerateNextWordPositionsOnBoardZigZag();
+     }
+if ($in{walkpath} eq 'numerical')
+     {
+     &GenerateNextWordPositionsOnBoardNumerical();
+     }
+if ($in{walkpath} eq 'random')
+     {
+     &GenerateNextWordPositionsOnBoardRandom();
+     }
+if ($in{walkpath} eq 'acrossthendown')
+     {
+     &GenerateNextWordPositionsOnBoardAcrossThenDown();
+     }
+if ($in{walkpath} eq 'diagonal')
+     {
+     &GenerateNextWordPositionsOnBoardDiag();
      }
 
 #&GenerateNextWordPositionsOnBoardNumerical(); #good!

@@ -16,7 +16,9 @@
 			<TABLE CELLPADDING="5" CELLSPACING="0" BGCOLOR="#FFFFFF"> 
 			  <TR> 
 				<TD COLSPAN="3"> 
-				  <H3 ALIGN="CENTER">Emogic's Crossword Generator</H3></TD> 
+				  <H6 ALIGN="CENTER">Back to <A HREF="/">Emogic</A></H6> 
+				  <H3 ALIGN="CENTER"><A HREF="/">Emogic's</A> Crossword
+					Generator </H3></TD> 
 			  </TR> 
 			  <TR> 
 				<TD
@@ -35,49 +37,52 @@
 							  <TR> 
 								<TD VALIGN="TOP" COLSPAN="2"
 								 ALIGN="CENTER"><INPUT TYPE="radio" NAME="layouts" CHECKED="CHECKED"
-								  VALUE="grids"><U>Grid</U></TD> 
+								  VALUE="grids"><A HREF="#"
+								  ONCLICK="alert(gridsvar);return false;">Grids</A></TD> 
 							  </TR> 
 							  <TR> 
 								<TD VALIGN="TOP"> 
-								  <SELECT NAME="grid" SIZE="5">
+								  <SELECT NAME="grid" SIZE="6"> 
 									<OPTION VALUE="3x3"
-									 CLASS="gridOption">Double Word Squares - no black squares</OPTION>
-									<OPTION VALUE="3x3"
-									 SELECTED="SELECTED">3x3</OPTION>
-									<OPTION VALUE="4x4">4x4</OPTION>
-									<OPTION VALUE="5x5">5x5</OPTION>
-									<OPTION VALUE="6x6">6x6</OPTION>
-									<OPTION VALUE="7x7">7x7</OPTION>
+									 CLASS="gridOption">Double Word Squares - no black squares</OPTION> 
+									<OPTION VALUE="3x3">3x3</OPTION> 
+									<OPTION VALUE="4x4">4x4</OPTION> 
+									<OPTION VALUE="5x5">5x5</OPTION> 
+									<OPTION VALUE="6x6">6x6</OPTION> 
+									<OPTION VALUE="7x7">7x7</OPTION> 
 									<OPTION VALUE="13x13_56_144"
-									 CLASS="gridOption">Standard USA Grids</OPTION>
+									 CLASS="gridOption">Standard USA Grids</OPTION> 
+									<OPTION VALUE="13x13_56_144"
+									 SELECTED="SELECTED">13x13_56_144</OPTION> 
 									<OPTION
-									 VALUE="13x13_56_144">13x13_56_144</OPTION>
+									 VALUE="13x13_56_144b">13x13_56_144b</OPTION> 
 									<OPTION
-									 VALUE="13x13_56_144b">13x13_56_144b</OPTION>
+									 VALUE="13x13_60_146">13x13_60_146</OPTION> 
 									<OPTION
-									 VALUE="13x13_60_146">13x13_60_146</OPTION>
+									 VALUE="13x13_62_145">13x13_62_145</OPTION> 
+									<OPTION VALUE="15x15">15x15</OPTION> 
 									<OPTION
-									 VALUE="13x13_62_145">13x13_62_145</OPTION>
-									<OPTION VALUE="15x15">15x15</OPTION>
+									 VALUE="16x16_80_42">16x16_80_42</OPTION> 
 									<OPTION
-									 VALUE="16x16_80_42">16x16_80_42</OPTION>
+									 VALUE="17x17_100_48">17x17_100_48</OPTION> 
 									<OPTION
-									 VALUE="17x17_100_48">17x17_100_48</OPTION>
-									<OPTION VALUE="19x19_116_58">19x19_116_58</OPTION>
-									<OPTION VALUE="21x21">21x21</OPTION>
-									<OPTION VALUE="21x21_126_64">21x21_126_64</OPTION>
-									<OPTION VALUE="BigOne">BigOne</OPTION>
+									 VALUE="19x19_116_58">19x19_116_58</OPTION> 
+									<OPTION VALUE="21x21">21x21</OPTION> 
 									<OPTION
-									 VALUE="21x27_178_92">21x27_178_92</OPTION>
-									<OPTION VALUE="23x23_160_87">23x23_160_87</OPTION>									 
+									 VALUE="21x21_126_64">21x21_126_64</OPTION> 
+									<OPTION VALUE="BigOne">BigOne</OPTION> 
+									<OPTION
+									 VALUE="21x27_178_92">21x27_178_92</OPTION> 
+									<OPTION
+									 VALUE="23x23_160_87">23x23_160_87</OPTION> 
 									<OPTION VALUE="13x13_22_112"
-									 CLASS="gridOption">British Style</OPTION>
+									 CLASS="gridOption">British Style</OPTION> 
 									<OPTION
-									 VALUE="13x13_22_112">13x13_22_112</OPTION>
+									 VALUE="13x13_22_112">13x13_22_112</OPTION> 
 									<OPTION
-									 VALUE="15x15_26_138">15x15_26_138</OPTION>
+									 VALUE="15x15_26_138">15x15_26_138</OPTION> 
 									<OPTION
-									 VALUE="21x21_44_292">21x21_44_292</OPTION>
+									 VALUE="21x21_44_292">21x21_44_292</OPTION> 
 								  </SELECT><BR></TD> 
 								<TD VALIGN="TOP"></TD> 
 							  </TR> 
@@ -87,7 +92,9 @@
 							 WIDTH="100%"> 
 							  <TR> 
 								<TD><INPUT TYPE="radio" NAME="layouts"
-								  VALUE="doublespaced"> <U>British Grids Random</U></TD> 
+								  VALUE="doublespaced">
+								  <A HREF="#" ONCLICK="alert(britishgridsvar);return false;">British Grids
+								  Random</A></TD> 
 							  </TR> 
 							  <TR> 
 								<TD>Width/Height
@@ -102,8 +109,9 @@
 							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
 							 WIDTH="100%"> 
 							  <TR> 
-								<TD VALIGN="TOP" COLSPAN="2"
-								 ALIGN="CENTER"><U>Clue Databases</U></TD> 
+								<TD VALIGN="TOP" COLSPAN="2" ALIGN="CENTER"><A
+								  HREF="#" ONCLICK="alert(worddatabasevar);return false;">Word Databases</A></TD>
+								
 							  </TR> 
 							  <TR> 
 								<TD VALIGN="TOP"><INPUT TYPE="radio"
@@ -121,7 +129,7 @@
 								  Words</A><BR><INPUT TYPE="radio" NAME="wordfile"
 								  VALUE="CrosswordComiler_17763">
 								  <A HREF="./wordlists/CrosswordComiler_17763/stats.txt" TARGET="_blank">17,763
-								  Words</A><BR><BR></TD> 
+								  Words</A><BR> </TD> 
 								<TD VALIGN="TOP"></TD> 
 							  </TR> 
 							</TABLE><BR> 
@@ -129,21 +137,34 @@
 							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
 							 WIDTH="100%"> 
 							  <TR> 
-								<TD><U>WalkPath</U></TD> 
+								<TD><A HREF="#"
+								  ONCLICK="alert(walkpathvar);return false;">WalkPath</A></TD> 
 							  </TR> 
 							  <TR> 
-								<TD><INPUT TYPE="RADIO" NAME="walkpath"
-								  VALUE="crossingwords" CHECKED="CHECKED">Crossing Words<BR><INPUT TYPE="RADIO"
-								  NAME="walkpath" VALUE="zigzag">ZigZag<BR><HR><INPUT TYPE="CHECKBOX"
-								  NAME="optimalbacktrack" VALUE="1" CHECKED="CHECKED"> Optimal Backtrack
-								  (Recommended)</TD> 
+								<TD> 
+								  <SELECT NAME="walkpath" SIZE="1"
+								   ID="walkpath"> 
+									<OPTION VALUE="crossingwords"
+									 SELECTED="SELECTED">Crossing Words (best)</OPTION> 
+									<OPTION VALUE="zigzag">Zig Zag</OPTION> 
+									<OPTION VALUE="diagonal">Diagonal</OPTION> 
+									<OPTION
+									 VALUE="numerical">Numerical</OPTION> 
+									<OPTION VALUE="acrossthendown">Across then
+									  Down</OPTION> 
+									<OPTION VALUE="random">Random
+									  (worst)</OPTION> 
+								  </SELECT><HR><INPUT TYPE="CHECKBOX"
+								  NAME="optimalbacktrack" VALUE="1" CHECKED="CHECKED">
+								  <A HREF="#" ONCLICK="alert(optimumbacktrackvar);return false;">Optimal
+								  Backtrack</A> (Recommended)</TD> 
 							  </TR> 
 							</TABLE><BR> 
 							<TABLE BORDER="0"
 							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
 							 WIDTH="100%"> 
 							  <TR> 
-								<TD><U>Calculate Time</U></TD> 
+								<TD>Calculate Time</TD> 
 							  </TR> 
 							  <TR> 
 								<TD>
@@ -155,7 +176,9 @@
 					  <P><INPUT TYPE="SUBMIT" NAME="Submit1"
 						VALUE="Generate Puzzle"></P> 
 					  <P><INPUT TYPE="RESET" NAME="Reset1"
-						VALUE="Reset Defaults"></P> </FORM> </CENTER></TD> 
+						VALUE="Reset Defaults"></P> </FORM> </CENTER>
+				  <P ALIGN="CENTER"><A HREF="/crosswords/common/"><B>Crossword
+					Puzzle Archive</B></A></P></TD> 
 				<TD
 				 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
 				 VALIGN="TOP" COLSPAN="2" ALIGN="CENTER"> 
@@ -169,9 +192,7 @@
 				   ONSUBMIT="return;" METHOD="POST"> 
 					<P><INPUT TYPE="SUBMIT" NAME="Submit2"
 					  VALUE="Erase stalled crossword generation"><BR>(Use if display above does not
-					  update)</P> </FORM> 
-				  <P>All generated crosswords are in the
-					<A HREF="/crosswords/common/">Crossword Puzzle Archive</A></P></TD> 
+					  update)</P> </FORM> </TD> 
 			  </TR> 
 			  <TR> 
 				<TD COLSPAN="3" ALIGN="CENTER"
@@ -203,6 +224,13 @@ oxxo</PRE></TD>
 			</TABLE></TD> 
 		</TR> 
 	  </TABLE></CENTER> <SCRIPT>
+
+var gridsvar = 'These are some standard pre-generated grids. See below if you want to contribute other grids.';
+var britishgridsvar = 'This will generate a random British style grid (double spaced). Nothe that it is not symetrical.';	  
+var worddatabasevar = 'The more words we have in our database the easier it is to generate a crossword.';
+var walkpathvar = 'The walk path is the order we try to lay down words. The path chosen can vastly improve the generation time. Different paths work better for different grids but Crossing Words is the best for most situations.';
+var optimumbacktrackvar = 'Optimal Backtrack vastly speeds up the search by removing more than one word when we can no longer lay down another word. It will continue to remove words until it reaches a word that caused the failure.';
+
 //get quickprint.txt often 
 function get_printout() 
 	{ 
