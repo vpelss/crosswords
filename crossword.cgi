@@ -8,6 +8,7 @@
 #explain backtracking
 
 #allow sentences in words (strip out spaces)
+#allow super slowdoewn to see what is happening
 
 use strict;
 
@@ -114,7 +115,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &quickprinttofile("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -144,11 +145,9 @@ $in{optimalbacktrack} = 1;
 #$in{wordfile} = "sympathyClues_31121";
 $in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
-$in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
-$in{mode} = 'word';
-$in{mode} = 'letter';
+$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-#%in = &parse_form; #get input arguments. comment out for commandline running
+%in = &parse_form; #get input arguments. comment out for commandline running
 
 &process_arguments;
 
@@ -195,36 +194,65 @@ if ($debug ) {print time()-$timeForCrossword . " sec Calculating word walk path.
 if ($in{walkpath} eq 'crossingwords')
      {
      &GenerateNextWordPositionsOnBoardCrossing(); #good all purpose start anywhere!
+     $in{mode} = 'word';
      }
 if ($in{walkpath} eq 'zigzag')
      {
      &GenerateNextWordPositionsOnBoardZigZag();
+     $in{mode} = 'word';
      }
 if ($in{walkpath} eq 'numerical')
      {
      &GenerateNextWordPositionsOnBoardNumerical();
+     $in{mode} = 'word';
      }
 if ($in{walkpath} eq 'random')
      {
      &GenerateNextWordPositionsOnBoardRandom();
+     $in{mode} = 'word';
      }
 if ($in{walkpath} eq 'acrossthendown')
      {
      &GenerateNextWordPositionsOnBoardAcrossThenDown();
+     $in{mode} = 'word';
      }
 if ($in{walkpath} eq 'diagonal')
      {
      &GenerateNextWordPositionsOnBoardDiag();
+     $in{mode} = 'word';
      }
 if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardFlat')
      {
      &GenerateNextLetterPositionsOnBoardFlat();
+     $in{mode} = 'letter';
+     }
+if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardZigZag')
+     {
+     &GenerateNextLetterPositionsOnBoardZigZag();
+     $in{mode} = 'letter';
+     }
+if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardDiag')
+     {
+     &GenerateNextLetterPositionsOnBoardDiag();
+     $in{mode} = 'letter';
+     }
+if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardRandom')
+     {
+     &GenerateNextLetterPositionsOnBoard();
+     $in{mode} = 'letter';
+     }
+if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardSwitchWalk')
+     {
+     &GenerateNextLetterPositionsOnBoardSwitchWalk();
+     $in{mode} = 'letter';
+     }
+if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardSnakeWalk')
+     {
+     &GenerateNextLetterPositionsOnBoardSnakeWalk();
+     $in{mode} = 'letter';
      }
 
-#&GenerateNextWordPositionsOnBoardNumerical(); #good!
-#&GenerateNextWordPositionsOnBoardDiag();
-#&GenerateNextWordPositionsOnBoardAcrossThenDown(); #poor
-#&GenerateNextWordPositionsOnBoardRandom(); #forget it!
+
 
 $timeForCrossword = time(); #reset counter so we mesure time to find solution only
 
