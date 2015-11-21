@@ -236,11 +236,6 @@ if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardDiag')
      &GenerateNextLetterPositionsOnBoardDiag();
      $in{mode} = 'letter';
      }
-if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardRandom')
-     {
-     &GenerateNextLetterPositionsOnBoard();
-     $in{mode} = 'letter';
-     }
 if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardSwitchWalk')
      {
      &GenerateNextLetterPositionsOnBoardSwitchWalk();
@@ -373,6 +368,8 @@ $in{wordfile} =~ s/[^\d\w]//g;
 
 if ( $in{TimeLimit} > 10 ) {$in{TimeLimit} = 10}
 $timelimit = $in{TimeLimit} * 60;
+
+if ( $in{SlowDown} > 5 ) {$in{SlowDown} = 5}
 };
 
 sub GenerateNextWordPositionsOnBoardCrossing
@@ -1191,6 +1188,8 @@ while ($success == 0)
               &quickprinttofile();
               $oldTime = time();
               }
+
+        if ( $in{SlowDown} > 0 ) {sleep ($in{SlowDown})}
 
         #attempt to lay next word
         $success = &RecursiveWords(); #lay next word in the next position
@@ -2150,11 +2149,10 @@ for ($y = 0 ; $y < $in{height} ; $y++)
              if ($puzzle[$x][$y]->{Letter} ne $padChar)
                   {
                   push @nextLetterPositionsOnBoard , {x => $x, y => $y};
-                  print "($x,$y)";
+                  if ($debug) {print "($x,$y)"}
                   }
              }
          }
-print "\n\n";
 }
 
 sub GenerateNextLetterPositionsOnBoardZigZag
@@ -2201,7 +2199,7 @@ do {
              $x =  $x + 2;
              $y = $in{height} - 1;
              }
-        #print "($x,$y)";
+        if ($debug) {print "($x,$y)"}
         #process cursor position
         if ($puzzle[$x][$y]->{Letter} ne $padChar)
                   {
@@ -2239,35 +2237,13 @@ do {
                 $y = 0;
                 }
           }
-    print "($x,$y)";
+    if ($debug) {print "($x,$y)"}
     #process cursor position
     if ($puzzle[$x][$y]->{Letter} ne $padChar) {
          push @nextLetterPositionsOnBoard , {x => $x, y => $y};
          }
     }
 until ( ($x >= $in{width} - 1) and ($y >= $in{height} - 1) );
-}
-
-sub GenerateNextLetterPositionsOnBoardRandom
-{
-#create right to left top to bottom list in which we will lay down words. FIFO
-my $x = 0;
-my $y = 0;
-
-@nextLetterPositionsOnBoard = ();
-for ($y = 0 ; $y < $in{height} ; $y++)
-     {
-     for ($x = 0 ; $x < $in{width} ; $x++)
-             {
-             if ($puzzle[$x][$y]->{Letter} ne $padChar)
-                  {
-                  push @nextLetterPositionsOnBoard , {x => $x, y => $y};
-                  print "($x,$y)";
-                  }
-             }
-         }
-print "\n\n";
-@nextLetterPositionsOnBoard = shuffle @nextLetterPositionsOnBoard
 }
 
 sub GenerateNextLetterPositionsOnBoardSwitchWalk
@@ -2336,7 +2312,7 @@ do {
                 }
           for ($walkStep = 1 ; $walkStep <= $walkLength ; $walkStep++) {
                 if ($puzzle[$x][$y]->{Letter} ne $padChar) {
-                     print "dir:$dir walkStep:$walkStep walkLength:$walkLength ($x,$y)\n";
+                     if ($debug) {print "dir:$dir walkStep:$walkStep walkLength:$walkLength ($x,$y)\n"}
                      push @nextLetterPositionsOnBoard , {x => $x, y => $y};
                      }
                 $x = $x + (not $dir);
@@ -2346,7 +2322,6 @@ do {
     }
 until ($walkLength > $in{height} - 1);
 
-print "\n\n";
 }
 
 sub lettersPossibleAtCell()
@@ -2419,14 +2394,16 @@ my $x = $_[0];
 my $y = $_[1];
 
 $x = $x - 1;
-if ( ( not &outsideCrossword($x,$y) )  and ( &GetXY($x,$y) ne $padChar ) )
+my $char = &GetXY($x,$y);
+if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $unoccupied) )
      {
      $touchingLetters{$x}{$y}=1;
      }
 $x = $x + 1;
 
 $y = $y - 1;
-if ( ( not &outsideCrossword($x,$y) ) and ( &GetXY($x,$y) ne $padChar ) )
+$char = &GetXY($x,$y);
+if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $unoccupied) )
      {
      $touchingLetters{$x}{$y}=1;
      }

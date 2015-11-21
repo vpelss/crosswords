@@ -91,17 +91,23 @@
 							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
 							 WIDTH="100%"> 
 							  <TR> 
-								<TD><INPUT TYPE="radio" NAME="layouts"
-								  VALUE="doublespaced">
+								<TD ALIGN="CENTER"><INPUT TYPE="radio"
+								  NAME="layouts" VALUE="doublespaced">
 								  <A HREF="#" ONCLICK="alert(britishgridsvar);return false;">British Grids
-								  Random</A></TD> 
-							  </TR> 
-							  <TR> 
-								<TD>Width/Height
+								  Random</A><BR><BR>Width/Height
 								  <INPUT TYPE="TEXT" NAME="doublespacedwidth" SIZE="3" VALUE="7"><BR><INPUT
 								  TYPE="CHECKBOX" NAME="evenodd" VALUE="1">Even/Odd<BR><INPUT TYPE="TEXT"
 								  NAME="doublespacedpercentage" VALUE="65" SIZE="3">PercentageWhite<BR><BR><INPUT
 								  TYPE="CHECKBOX" NAME="doublespacedfull" VALUE="1"> Full (100% white)</TD> 
+							  </TR> 
+							</TABLE><BR> 
+							<TABLE BORDER="0"
+							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
+							 WIDTH="100%"> 
+							  <TR> 
+								<TD ALIGN="CENTER"><A HREF="#"
+								  ONCLICK="alert(slowdownvar);return false;">Slow Down</A><BR><INPUT TYPE="TEXT"
+								  NAME="SlowDown" VALUE="0" SIZE="3"> 5 seconds max</TD> 
 							  </TR> 
 							</TABLE></TD> 
 						  <TD> 
@@ -141,7 +147,7 @@
 								  ONCLICK="alert(walkpathvar);return false;">WalkPath</A></TD> 
 							  </TR> 
 							  <TR> 
-								<TD> 
+								<TD ALIGN="CENTER"> 
 								  <SELECT NAME="walkpath" SIZE="6"
 								   ID="walkpath"> 
 									<OPTION VALUE="crossingwords"
@@ -162,17 +168,15 @@
 									 VALUE="GenerateNextLetterPositionsOnBoardFlat" CLASS="gridOption">Letter
 									  Walks</OPTION> 
 									<OPTION
-									 VALUE="GenerateNextLetterPositionsOnBoardFlat">Flat Letters</OPTION> 
-									<OPTION
 									 VALUE="GenerateNextLetterPositionsOnBoardZigZag">ZigZag Letters</OPTION> 
 									<OPTION
 									 VALUE="GenerateNextLetterPositionsOnBoardDiag">Diag Letters</OPTION> 
 									<OPTION
+									 VALUE="GenerateNextLetterPositionsOnBoardFlat">Flat Letters</OPTION> 
+									<OPTION
 									 VALUE="GenerateNextLetterPositionsOnBoardSwitchWalk">Switch Letters</OPTION> 
 									<OPTION
 									 VALUE="GenerateNextLetterPositionsOnBoardSnakeWalk">Snake Letters</OPTION> 
-									<OPTION
-									 VALUE="GenerateNextLetterPositionsOnBoard">Random Letters</OPTION> 
 								  </SELECT><HR><INPUT TYPE="CHECKBOX"
 								  NAME="optimalbacktrack" VALUE="1" CHECKED="CHECKED">
 								  <A HREF="#" ONCLICK="alert(optimumbacktrackvar);return false;">Optimal
@@ -182,12 +186,9 @@
 							<TABLE BORDER="0"
 							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
 							 WIDTH="100%"> 
-							  <TR> 
-								<TD>Calculate Time</TD> 
-							  </TR> 
-							  <TR> 
-								<TD>
-								  <INPUT TYPE="TEXT" NAME="TimeLimit" VALUE="5" SIZE="5"> 10 min max</TD> 
+							  <TR>
+								<TD ALIGN="CENTER"> Calculate Time<BR><INPUT
+								  TYPE="TEXT" NAME="TimeLimit" VALUE="5" SIZE="5"> 10 min max </TD> 
 							  </TR> 
 							</TABLE></TD> 
 						</TR> 
@@ -212,6 +213,12 @@
 					<P><INPUT TYPE="SUBMIT" NAME="Submit2"
 					  VALUE="Erase stalled crossword generation"><BR>(Use if display above does not
 					  update)</P> </FORM> </TD> 
+			  </TR> 
+			  <TR> 
+				<TD COLSPAN="3" ALIGN="CENTER"
+				 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid">Notes
+				  about the creation of this Crossword Generator Algorithm and Script:<BR><A HREF="https://www.emogic.com/notes/notes"
+				  TARGET="_blank">https://www.emogic.com/notes/notes</A></TD> 
 			  </TR> 
 			  <TR> 
 				<TD COLSPAN="3" ALIGN="CENTER"
@@ -249,6 +256,7 @@ var britishgridsvar = 'This will generate a random British style grid (double sp
 var worddatabasevar = 'The more words we have in our database the easier it is to generate a crossword.';
 var walkpathvar = 'The walk path is the order we try to lay down words. The path chosen can vastly improve the generation time. Different paths work better for different grids but Crossing Words is the best for most situations. Letter walks are the slowest and are provided only to test and prove this fact.';
 var optimumbacktrackvar = 'Optimal Backtrack vastly speeds up the search by removing more than one word when we can no longer lay down another word. It will continue to remove words until it reaches a word that caused the failure.';
+var slowdownvar = 'Only use this if you want to see the walk in slow time. It is not useful in generating crosswords.';
 
 //get quickprint.txt often 
 function get_printout() 
