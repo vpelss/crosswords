@@ -1,0 +1,30 @@
+
+Loops per Sec: 14955.8283261803
+CLAYxBUWAYxSNUGSxHAZY
+ROSYxWNERSxVOMITxMRNA
+OTSUxOLITHxERASMUSSET
+PADRONESxAULASxCSTATE
+xxxYOGDxPPRTSSxHSExxx
+OJAYSxxBEENExxACERBIC
+NOBUxFOUNDxRASUooxooo
+ooooxooooxxxooooxoooo
+oooxooooooxooooxooooo
+ooooooooxoooooxoooooo
+xxxooooxoooooxooooxxx
+ooooooxoooooxoooooooo
+oooooxooooxooooooxooo
+ooooxooooxxxooooxoooo
+oooxooooooxoooooxoooo
+oooooooxxoooooxxooooo
+xxxoooxooooooxooooxxx
+ooooooxoooooxoooooooo
+ooooooooooxoooooxoooo
+ooooxoooooxoooooxoooo
+ooooxoooooxoooooxoooo
+
+Time: 232
+Loops: 3484708
+Sec per Loop: 6.65765969487257e-005
+Loops per Sec: 14955.8283261803
+
+optimalBacktrack:69261 naiveBacktrack:3415329 recursive calls:3484708
