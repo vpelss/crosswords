@@ -83,6 +83,22 @@ my %WordListByMask = (); #no longer used but keep for testing. Not much faster t
 #$wordListByMask{WoRo}{WORD}=1 etc
 #huge database but very fast search for words fitting a mask or pattern
 
+#------------------------------------
+#letter search variables
+
+my @nextLetterPositionsOnBoard;
+#all letter position on board used for cycling through letter placements, etc
+# [{x => $x, y => $y} , , ]
+#$nextLetterPositionsOnBoard[]{x} $NextWordPositionsOnBoard[]{y}
+
+my %linearWordSearch  = (); #no longer used
+#very fast for finding the next possible letters in a word
+#$linearWordSearch{mask}{key1 , key2} and it will return a list of keys (so there are no duplicates) representing the next possible letters.
+#@letters = keys %{$linearWordSearch{$mask}};
+#mask must be a prefix mask ie: TOOLooooo
+
+#---------------------------------------------
+
 my $padChar = 'x';
 my $unoccupied = 'o';
 my $padsEitherSide = 'padsEitherSide';
@@ -98,7 +114,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &quickprinttofile("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -121,14 +137,18 @@ if ($uid eq '') {$uid='common'} #for non facebook games
 
 srand;
 
+$in{TimeLimit} = 5;
 $in{layouts} = 'grids';
-$in{grid} = '5x5';
+$in{grid} = 'BigOne';
 $in{optimalbacktrack} = 1;
 #$in{wordfile} = "sympathyClues_31121";
-$in{wordfile} = "MyClues_248505";
+$in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
+#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
+$in{mode} = 'word';
+#$in{mode} = 'letter';
 
-%in = &parse_form; #get input arguments. comment out for commandline running
+#%in = &parse_form; #get input arguments. comment out for commandline running
 
 &process_arguments;
 
@@ -196,6 +216,10 @@ if ($in{walkpath} eq 'diagonal')
      {
      &GenerateNextWordPositionsOnBoardDiag();
      }
+if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardFlat')
+     {
+     &GenerateNextLetterPositionsOnBoardFlat();
+     }
 
 #&GenerateNextWordPositionsOnBoardNumerical(); #good!
 #&GenerateNextWordPositionsOnBoardDiag();
@@ -204,7 +228,13 @@ if ($in{walkpath} eq 'diagonal')
 
 $timeForCrossword = time(); #reset counter so we mesure time to find solution only
 
-&RecursiveWords();
+if ( $in{mode} eq 'word' ) {
+     &RecursiveWords();
+     }
+else {
+     &RecursiveLetters();
+      }
+
 
 &quickprinttofile();
 if ($debug ) {print time()-$timeForCrossword . " sec Done.\n\nNumbering clue list.\n\n";}
@@ -1017,6 +1047,20 @@ foreach $wordLength ( keys %wordLengths)
                   if ($wordsOfLengthString[$wordLength] eq '') {$wordsOfLengthString[$wordLength] = ','} #start string of words with a coma
                   $wordsOfLengthString[$wordLength] = "$wordsOfLengthString[$wordLength]$word,"; #build a comma delimited string of each possible word length
 
+                  #letter by letter build here
+                  my @lettersInWord =  split('' , $word);
+                  my $letterPosition = 0;
+                  #prep for new fast linear word search : $linearWordSearch{mask}
+                  $mask = $word;
+                  $mask =~ s/\S/o/g; #build a mask with ooooooooo of wordlength
+                  foreach my $letter (@lettersInWord)
+                           {
+                           #build new fast linear word search : $linearWordSearch{mask}
+                           $linearWordSearch{$mask}{ substr($word,$letterPosition,1) } = 1 ; #add letter for $letterPosition to set of hash keys for this $mask
+                           substr ( $mask , $letterPosition , 1 , $letter); #change mask with next letter added to it Cooo to COoo
+                           $letterPosition++;
+                           }
+
 =pod
                    foreach $mask (@{ $binaryMasks{$wordLength} })
                             {
@@ -1102,6 +1146,136 @@ while ($success == 0)
 
         #try the next word that fit in this location
         $popWord = pop @wordsThatFit;
+        if ($wordsThatAreInserted{$popWord} == 1) #this word is already used. fail
+                  {
+                 &placeMaskOnBoard($wordNumber , $dir , $mask);
+                 next; #choose another word ie. pop
+                  }
+        else #place word
+                 {
+                 &placeMaskOnBoard($wordNumber , $dir , $popWord);
+                 $wordsThatAreInserted{$popWord} = 1;
+                 }
+
+        $countprint++;
+        #if ($countprint > 10)
+        if (time() > $oldTime + 3) #print every 3 seconds
+              {
+              if ($debug ) {print time()-$timeForCrossword . " sec wordNumber:$wordNumber , dir:$dir $popWord optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";}
+              else {print '.';} # otherwise apache timeout directive limit is reached
+              &quickprinttofile();
+              $countprint = 1;
+              $oldTime = time();
+              }
+
+        #attempt to lay next word
+        $success = &RecursiveWords(); #lay next word in the next position
+        if ($success == 1){return 1;}; #board is filled, return out of all recursive calls successfuly
+#---------------
+        #if we are here, the last recursive attempt to lay a word failed. So we are backtracking.
+        #returning from last word which failed
+
+        $wordsThatAreInserted{$popWord} = 0; #allow us to reuse word
+        #failed so reset word to previous mask
+        &placeMaskOnBoard($wordNumber , $dir , $mask);
+
+        if ($in{optimalbacktrack} == 0)
+             {
+             %touchingWordsForBackTrack =(); #stop optimal recursion?
+             }
+
+        #optimal backtrack check and processing
+        if (%touchingWordsForBackTrack != ())
+             {
+              #we are doing an optimal backtrack
+              if ($touchingWordsForBackTrack{$wordNumber}{$dir} == 1) {
+                   #we have hit the optimal target. turn off optimal backtrack
+                   #print "optimal: word:$wordNumber dir:$dir \n";
+                   %touchingWordsForBackTrack = ();
+                   }
+              else {
+                    #still in optimal backtrack so keep going back
+                    unshift @nextWordOnBoard , {wordNumber => $wordNumber, dir => $dir};
+                    $optimalBacktrack++;
+                    return 0;
+                    }
+              }
+
+        $naiveBacktrack++;
+        next; #naive backtrack
+        }
+
+die('never get here'); #never get here
+}
+
+my %touchingLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+sub RecursiveLetters()
+{
+#recursive try to lay down letters using @nextLetterPositionsOnBoard, will shift of, store and unshift if required
+#store locally the possible letters in  @possibleLetter
+#in just the next index in a list (@nextLetterPositionsOnBoard) of word position we are trying to fill
+
+my $popLetter;
+
+%touchingLettersForBackTrack = (); #clear global indicating that we are moving forward and have cleared the backtrack state
+
+if (scalar @nextLetterPositionsOnBoard == 0) {return 1}; #if we have filled all the possible letters, we are done. This breaks us out of all recursive  success loops
+
+my %cellPosition =  %{ shift @nextLetterPositionsOnBoard }; #keep %cellPosition in subroutine unchaged as we may need to unshift on a recursive return
+my $x = $cellPosition{x};
+my $y = $cellPosition{y};
+
+my @lettersThatFit =  shuffle &lettersPossibleAtCell($x,$y); # 0.000059 sec per call
+
+$recursiveCount++; #count forward moving calls
+
+my $success = 0;
+while ($success == 0)
+        {
+        if (scalar @lettersThatFit == 0) #are there any possible words? If no backtrack
+              {
+              #fail to find a list of letters going forward or we are out of letters in a recursion so go back a letter
+              unshift @nextLetterPositionsOnBoard , {x => $x, y => $y}; #always unshift our current position back on to @nextLetterPositionsOnBoard when we return!
+
+              #optimal backtrack option. saves hundreds of naive backtracks!
+              #get/set global touchingLetters and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+              %touchingLettersForBackTrack = &GetTouchingLetters($x,$y);
+              return 0;
+              }; #no words so fail
+
+        #try the next word that fit in this location
+        $popLetter = pop @lettersThatFit;
+
+
+        5 dffgdagfda klja
+        note that the following only seems to check horiz word
+
+
+        #see if word is already selected. If so, fail + backtrack
+        #if it is not, mark this word as on the board
+        $wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][0];
+        if ($wordNumber > 0) {$mask = $allMasksOnBoard[$wordNumber][0];}
+        else {$mask='o';} #ignore as this is just a letter, not a word
+        if ($mask !~ /o/) #full word?
+             {
+             $wordsThatAreInserted{$mask} = 1;
+=pod
+             if ($wordsThatAreInserted{$mask} == 1) #this word is already used. fail
+                  {
+                 &SetXY($x,$y,$unoccupied);
+                 next; #choose another letter
+                  }
+             else
+                 {
+                 $wordsThatAreInserted{$mask} = 1;
+                 }
+=cut
+             }
+
+
+
+
+
         if ($wordsThatAreInserted{$popWord} == 1) #this word is already used. fail
                   {
                  &placeMaskOnBoard($wordNumber , $dir , $mask);
@@ -1937,4 +2111,352 @@ $]         and print "Perl Version        : $]\n";
             }
 print "\n</PRE>";
 exit -1;
+};
+
+sub GenerateNextLetterPositionsOnBoardFlat
+{
+#create right to left top to bottom list in which we will lay down words. FIFO
+my $x = 0;
+my $y = 0;
+
+@nextLetterPositionsOnBoard = ();
+for ($y = 0 ; $y < $in{height} ; $y++)
+     {
+     for ($x = 0 ; $x < $in{width} ; $x++)
+             {
+             if ($puzzle[$x][$y]->{Letter} ne $padChar)
+                  {
+                  push @nextLetterPositionsOnBoard , {x => $x, y => $y};
+                  print "($x,$y)";
+                  }
+             }
+         }
+print "\n\n";
+}
+
+sub GenerateNextLetterPositionsOnBoardZigZag
+{
+#create a top right to bottom left list in which we will lay down words. FIFO
+#zigzag alternate top right to bottom left then botom left to top right
+my $x = 1;
+my $y = -1;
+my $divX = -1;
+my $divY = 1;
+
+@nextLetterPositionsOnBoard = ();
+do {
+        #move cursor
+        $x = $x + $divX;
+        $y = $y + $divY;
+        #test cursor position
+        if ( ($x < 0) and ($y >= $in{height}) ) {#bottom left corner
+               $divX = -$divX; $divY = -$divY; #change directions
+               $x = 1;
+               $y = $in{height} - 1;
+               }
+        if ( ($x >= $in{width}) and ($y < 0) ) {#top right corner
+               $divX = -$divX; $divY = -$divY; #change directions
+               $x = $in{width} - 1;
+               $y = 1;
+               #$myWidth = $in{width};
+               }
+        if ($x < 0){#off left
+             $divX = -$divX; $divY = -$divY; #change directions
+             $x = 0;
+             }
+        if ($y < 0){#off top
+             $divX = -$divX; $divY = -$divY; #change directions
+             $y = 0;
+             }
+        if ($x >=  $in{width}){#off right
+             $divX = -$divX; $divY = -$divY; #change directions
+             $x =  $in{width} - 1;
+             $y = $y + 2;
+             }
+        if ($y >=  $in{height}){#off bottom
+             $divX = -$divX; $divY = -$divY; #change directions
+             $x =  $x + 2;
+             $y = $in{height} - 1;
+             }
+        #print "($x,$y)";
+        #process cursor position
+        if ($puzzle[$x][$y]->{Letter} ne $padChar)
+                  {
+                  push @nextLetterPositionsOnBoard , {x => $x, y => $y};
+                  }
+        }
+until ( ($x == $in{width} - 1) and ($y == $in{height} - 1) );
+}
+
+sub GenerateNextLetterPositionsOnBoardDiag
+{
+#create a top right to bottom left list in which we will lay down words. FIFO
+#better than zig zag
+my $x = 1;
+my $y = -1;
+my $divX = -1;
+my $divY = 1;
+my $diagCount;
+
+@nextLetterPositionsOnBoard = ();
+
+do {
+    #move cursor
+    $x = $x + $divX;
+    $y = $y + $divY;
+
+    if (($x < 0) or ($y >= $in{height}) ) {
+          $diagCount++;
+          $x = $diagCount;
+          if ($x >= $in{width} - 1) {
+               $x = $in{width} - 1;
+               $y = $diagCount - $x;
+               }
+          else {
+                $y = 0;
+                }
+          }
+    print "($x,$y)";
+    #process cursor position
+    if ($puzzle[$x][$y]->{Letter} ne $padChar) {
+         push @nextLetterPositionsOnBoard , {x => $x, y => $y};
+         }
+    }
+until ( ($x >= $in{width} - 1) and ($y >= $in{height} - 1) );
+}
+
+sub GenerateNextLetterPositionsOnBoardRandom
+{
+#create right to left top to bottom list in which we will lay down words. FIFO
+my $x = 0;
+my $y = 0;
+
+@nextLetterPositionsOnBoard = ();
+for ($y = 0 ; $y < $in{height} ; $y++)
+     {
+     for ($x = 0 ; $x < $in{width} ; $x++)
+             {
+             if ($puzzle[$x][$y]->{Letter} ne $padChar)
+                  {
+                  push @nextLetterPositionsOnBoard , {x => $x, y => $y};
+                  print "($x,$y)";
+                  }
+             }
+         }
+print "\n\n";
+@nextLetterPositionsOnBoard = shuffle @nextLetterPositionsOnBoard
+}
+
+sub GenerateNextLetterPositionsOnBoardSwitchWalk
+{
+#create a top right to bottom left list in which we will lay down words. FIFO
+my $x = 0;
+my $y = 0;
+my $xx = 0; #last starting run
+my $yy = 0; #last starting run
+my $dir = 0; #horiz first
+
+@nextLetterPositionsOnBoard = ();
+
+do
+        {
+        if ($puzzle[$x][$y]->{Letter} ne $padChar)
+                  {
+                  push @nextLetterPositionsOnBoard , {x => $x, y => $y};
+                  }
+        if ($x == $in{width}-1)
+             {
+             $x = $xx ;
+             $y = $yy ;
+             $yy = $yy + 1;
+             $dir = 1;
+             }
+        if ($y == $in{height}-1)
+             {
+             $x = $xx;
+             $y = $yy ;
+             $xx = $xx + 1;
+             $dir = 0;
+             }
+        $x = $x + (not $dir);
+        $y = $y + $dir;
+        }
+until (($x + $y + 2) > ($in{height}+$in{width}));
+}
+
+sub GenerateNextLetterPositionsOnBoardSnakeWalk
+{
+#create a top right to bottom left list in which we will lay down words. FIFO
+my $dir;
+my $walkLength = 0;
+my $walkStep;
+my $x;
+my $y;
+
+@nextLetterPositionsOnBoard = ();
+
+if ($in{height} != $in{width}) {
+     die("The grid is not square. snake walk failed.");
+     }
+
+do {
+    $walkLength++;
+    for ($dir = 0 ; $dir < 2 ; $dir++) {
+          if ($dir == 0) {
+               $y = $walkLength - 1;
+               $x = 0;
+               }
+          else {
+                $y = 0;
+                $x = $walkLength;
+                if ( $walkLength == ($in{height}) ) {next} #skip lat one
+                }
+          for ($walkStep = 1 ; $walkStep <= $walkLength ; $walkStep++) {
+                if ($puzzle[$x][$y]->{Letter} ne $padChar) {
+                     print "dir:$dir walkStep:$walkStep walkLength:$walkLength ($x,$y)\n";
+                     push @nextLetterPositionsOnBoard , {x => $x, y => $y};
+                     }
+                $x = $x + (not $dir);
+                $y = $y + $dir;
+                }
+          }
+    }
+until ($walkLength > $in{height} - 1);
+
+print "\n\n";
+}
+
+sub lettersPossibleAtCell()
+{
+#at the input position x,y and given the prefix of a word for a mask, find and return all possible letters
+my $x = $_[0];
+my $y = $_[1];
+my @lettersThatFit;
+my $wordNumber;
+my @lettersVert;
+my @lettersHoriz;
+my $mask;
+my $isVertWord;
+my $isHorizWord;
+
+#find vert mask and possible letters
+$wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][1];
+if ($wordNumber > 0) { #there is a vert mask
+     $isVertWord = 1;
+     $mask = $allMasksOnBoard[$wordNumber][1]; # get WORD or MASK at this crossword position
+     @lettersVert = keys %{$linearWordSearch{$mask}};
+     if (scalar @lettersVert == 0 ) { #should never get here as our $linearWordSearch does not stop mid word
+           die ('no \@lettersVert. impossible');
+           }
+     if (scalar( @lettersVert) == 1) { #only one letter possible. The word may be unique. so check to see if this word is already used
+         if (&IsWordAlreadyUsed($mask)) {
+              return (); #return empty as this word is already used
+              }
+         }
+     }
+
+#find horiz mask and possible letters
+$wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][0];
+if ($wordNumber > 0) { #there is a horiz mask
+     $isHorizWord = 1;
+     $mask = $allMasksOnBoard[$wordNumber][0]; # get WORD or MASK at this crossword position
+     @lettersHoriz = keys %{$linearWordSearch{$mask}};
+     if ( scalar @lettersHoriz == 0 ) { #should never get here as our $linearWordSearch does not stop mid word
+            die ('no \@lettersHoriz. impossible');
+           }
+     if (scalar( @lettersHoriz) == 1) { #only one letter possible. The worrd may be unique. so check to see if this word is already used
+         if (&IsWordAlreadyUsed($mask)) {
+               return (); #return empty as this word is already used
+               }
+         }
+     }
+
+if (($isHorizWord) and ($isVertWord)) { #there is a horiz and vert word at this cell. find inersection of possible letters
+     @lettersThatFit = intersection(\@lettersHoriz , \@lettersVert);
+     return @lettersThatFit;
+     }
+if ((not $isHorizWord) and ($isVertWord)) { #there is only a vertical word at this cell
+     return @lettersVert;
+     }
+if (($isHorizWord) and (not $isVertWord)) { #there is only a horizontal word at this cell
+     return @lettersHoriz;
+     }
+die('should not get to end of letterPossibleAt()');
+};
+
+sub GetTouchingLetters()
+{
+#input: cell position x , y
+#output: hash (quick access) of cell postions {x}{y}=1 that are above and before
+#$touchingLetters{x}{y} = 1
+
+my %touchingLetters;
+
+my $x $_[0];
+my $y $_[1];
+
+$x = $x - 1;
+if ( not &outsideCrossword($x,$y) ) and (  &GetXY($x,$y) ne $padChar  )
+     {
+     $touchingLetters{$x}{$y}=1;
+     }
+$x = $x + 1;
+
+$y = $y - 1;
+if ( not &outsideCrossword($x,$y) ) and (  &GetXY($x,$y) ne $padChar  )
+     {
+     $touchingLetters{$x}{$y}=1;
+     }
+$y = $y + 1;
+
+return %touchingLetters;
+
+
+
+#print "for word $wordNumber dir $dir\n";
+#for adjoining search
+my $divX;
+my $divY;
+if ($dir == 0) {
+       $divX = 0;
+       $divY = 1;
+       }
+ else {
+       $divX = 1;
+       $divY = 0;
+        }
+
+my @wordLetterPositions = @{$letterPositionsOfWord[$wordNumber][$dir]};
+foreach $letterPosition (@wordLetterPositions)
+  {
+  $x = $letterPosition->[0];
+  $y = $letterPosition->[1];
+  $crossingWordDir =  $OppositeDirection[$dir];
+
+  #find and mark crossing words
+  $crossingWordNumber = $ThisSquareBelongsToWordNumber[$x][$y][$crossingWordDir];
+  $touchingWords{$crossingWordNumber}{$crossingWordDir} = 1;
+  #print "crossing word $crossingWordNumber\n";
+
+  #find and mark adjoining words
+  $adjoiningWordNumber = $ThisSquareBelongsToWordNumber[$x + $divX][$y + $divY][$dir];
+  if ($adjoiningWordNumber > 0) {
+       $touchingWords{$adjoiningWordNumber}{$dir} = 1;
+       #print "adjoining word $adjoiningWordNumber\n";
+       }
+  $adjoiningWordNumber = $ThisSquareBelongsToWordNumber[$x - $divX][$y - $divY][$dir];
+  if ($adjoiningWordNumber > 0) {
+       $touchingWords{$adjoiningWordNumber}{$dir} = 1;
+       #print "adjoining word $adjoiningWordNumber\n";
+       }
+  }
+return %touchingLetters;
+}
+
+sub outsideCrossword {
+my $x = $_[0];
+my $y = $_[1];
+if ( ($x >= $in{width} ) || ($y >= $in{height} ) ) {return 1}
+if ( ($x < 0) || ($y < 0) ) {return 1}
+return 0;
 };
