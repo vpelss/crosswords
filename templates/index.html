@@ -432,7 +432,7 @@ hide2('Instructions');
 		<P>From: <INPUT TYPE="TEXT" NAME="Text1" ID="from"> To:
 		  <INPUT TYPE="TEXT" VALUE="friends@email.com" ID="to">
 		  <INPUT TYPE="BUTTON" NAME="Button2" VALUE="Invite"
-              			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
+               			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
 		  </P> </FORM><SCRIPT>
 hide2('InviteForm');
 </SCRIPT> 
@@ -472,7 +472,9 @@ hide2('InviteForm');
 		   ONCLICK="document.getElementById('chatbox').innerHTML = '';ajax_send_uri('%scripturl%/chat.cgi' , do_nothing , '&uid=%uid%&game=%game%&clear=1');return false;">
 		  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name:
 		  <INPUT TYPE="TEXT" NAME="chatname" ID="chatname"></P> </FORM></DIV> 
-	<P ALIGN="CENTER">Crossword</P> 
+	<P ALIGN="CENTER">Crossword</P>
+	<DIV ALIGN="CENTER"><B><FONT COLOR="#CC0000">Click on puzzle or Clues and
+	  type your answer</FONT></B></DIV> 
 	<DIV ALIGN="CENTER"> 
 	  <TABLE CELLPADDING="3" CELLSPACING="0"> 
 		<TR> 
