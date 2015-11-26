@@ -37,3 +37,9 @@ $RECYCLE.BIN/
 
 # Directories potentially created on remote AFP share
 wordlists
+
+#files
+chat.cgi
+cellupdate.cgi
+clearcrossword.cgi
+erase.cgi
