@@ -23,12 +23,12 @@ my $archivepath = $vpvars::archivepath;
 my $archiveurl  = $vpvars::archiveurl;
 my $scripturl  = $vpvars::scripturl;
 
-$|=1; #keep it alive as long as possible as server allows
 print "Content-type: text/html\n\n";
 if ( -e "quickprint.txt") { print"Already running."; die("$0 is already running. Exiting.\n"); };
 
 open(my $quickprint, ">quickprint.txt") or die "Can't open : $!";
 lock($quickprint);
+$|=1; #keep it alive as long as possible as server allows
 
 #globals
 my %in; #input arguments $in{argname}
@@ -350,7 +350,7 @@ sub Quit()
 print $_[0]; #feedback to web browser
 #unlock($quickprint);
 close($quickprint);
-sleep(10);
+sleep(20);
 unlink('quickprint.txt');
 exit;
 }
