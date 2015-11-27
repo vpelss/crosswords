@@ -23,7 +23,7 @@ Grid\ulnone\f1\fs24\par
 The grid templates are text files containing rows made up of 'o' and 'x'.\f1\fs24\par
 \f0\fs20 'x' = black squares\f1\fs24\par
 \f0\fs20 'o' = empty squares\f1\fs24\par
-\f0\fs20 They were chosen as they are the same size and this gives an easily visual representation of the actual grid in notepad.\f1\fs24\par
+\f0\fs20 The x and o were chosen as they are the same size and this gives an easily visual representation of the actual grid in notepad.\f1\fs24\par
 \f0\fs20\par
 In the script they are retained as such, and do not conflict, as the inserted letters will always be capital letters.\f1\fs24\par
 \f0\fs20\par
@@ -56,7 +56,7 @@ Method 1. Initially I built a chain of hash references and required the word len
 \cf3\f0\fs20\par
 \b Mask Searches : @words = &WordsFromMask($mask) $mask = \lquote GOoD\rquote  :  Return a list of potential words for a given mask\cf0\b0\f1\fs24\par
 \cf3\f0\fs20\par
-Method 1. For a given mask (eg GOoD), cycle through all the letters. For each letter return a list (built before hand) of all words, the same length as the mask, that have that letter in that position. Do that for all all letters that we have in the mask. Then we compare all the lists and keep the words that show up in all the lists. \cf0\f1\fs24\par
+Method 1. For a given mask (eg GOoD), cycle through all the letters. For each letter return a list (built before) of all words, the same length as the mask, that have that letter in that position. Do that for all all letters that we have in the mask. Then we compare all the lists and keep the words that show up in all the lists. \cf0\f1\fs24\par
 \cf3\f0\fs20 It was complex, and was not all that fast as we had to repeatedly compare potentially large lists of words.\cf0\f1\fs24\par
 \cf3\f0\fs20 It's memory use was average to high as a  word string was stored multiple times, at least as many times as letters in the word. Eg DOG was stored 3 times, once for each letter.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
