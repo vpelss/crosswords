@@ -348,7 +348,7 @@ sub Quit()
 {
 #&quickprinttofile("!Erase with button below to allow other crosswords to be generated!\n\n $_[0]\n\n");
 print $_[0]; #feedback to web browser
-unlock($quickprint);
+#unlock($quickprint);
 close($quickprint);
 sleep(10);
 unlink('quickprint.txt');

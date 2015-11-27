@@ -1,23 +1,22 @@
 
-Loops per Sec: 110.144
-FLUNGATxAPPED
+Loops per Sec: 108.187878787879
+FLUNGATxANTAR
 AALARGExIoooo
 MIRRORSxRoooo
 ERIxxAONYxooo
 DSCSSNLSTxooo
-xxxOKDxCANTOS
+xxxOKDxCAUSED
 TOODYxxxLoooo
 CATSPAxoEoxxx
 oooxINDISPOSE
-oooxLOLZxxooo
-YELLOxooooooo
-LSEATxooooooo
-ESSESxooooooo
+oooxLIRRxxooo
+ITOIOxooooooo
+EIGHTxooooooo
+SOYASxooooooo
 
-Time: 124
-Loops: 13768
-Sec per Loop: 0.00900639163277164
-Loops per Sec: 110.144
+Time: 164
+Loops: 17851
+Sec per Loop: 0.00918716038317181
+Loops per Sec: 108.187878787879
 
-optimalBacktrack:4725 naiveBacktrack:9015 recursive calls:13768
-sive calls:13401
+optimalBacktrack:6165 naiveBacktrack:11658 recursive calls:17851
