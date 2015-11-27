@@ -12,6 +12,7 @@
 
 use strict;
 
+use CGI;
 use List::Util qw(shuffle);
 use Time::HiRes;
 use Fcntl qw(:flock SEEK_END);
@@ -345,9 +346,11 @@ exit;
 
 sub Quit()
 {
-print $_[0];
+#&quickprinttofile("!Erase with button below to allow other crosswords to be generated!\n\n $_[0]\n\n");
+print $_[0]; #feedback to web browser
 unlock($quickprint);
 close($quickprint);
+sleep(10);
 unlink('quickprint.txt');
 exit;
 }
@@ -1734,12 +1737,26 @@ $string = $string .  "Loops per Sec: " . $recursiveCount / (time + 1 - $timeForC
 $string = $string . "\n\n";
 $string = $string . "optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";
 
-if ($message ne "") {$string = "$message";}
+if ($message ne "") {
+     if ($string =~ /^!/)
+          {$string = "$message\n\n$string";}
+     else
+         {$string = "$message";}
+     }
+
+#$quickprint->flush();
+
+
+seek($quickprint, 0 , 0); #need to keep file open to lock it!
+#truncate $quickprint,0;
 
 print $quickprint "$string";
 
-#$quickprint->flush();
-seek($quickprint, 0 , 0);
+#unlock($quickprint);
+#open(my $quickprint, ">quickprint.txt") or die "Can't open : $!";
+#lock($quickprint);
+
+
 #close($quickprint); #need to close so it erases file
 #open($quickprint, ">quickprint.txt") or die "Can't open : $!";
 };

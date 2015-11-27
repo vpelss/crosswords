@@ -1,21 +1,23 @@
-Getting clues... 43.3333333333333
-SINKAGExMUTER
-EVERTEDxITEMI
-RADAMESxSENET
-RNDxxKOSSxDRD
-IVANLENDLxRAY
-xxxWTDxXAMILE
-TWOBCxxxBOLDS
-HORNOFxCERxxx
-EMPxLONGLIVED
-BAHxUNTOxxOPT
-ONEPMxYODELER
-SLURBxPSALTER
-SYSCOxEELIEST
 
-Time: 2
-Loops: 130
-Sec per Loop: 0.0153846153846154
-Loops per Sec: 43.3333333333333
+Loops per Sec: 110.144
+FLUNGATxAPPED
+AALARGExIoooo
+MIRRORSxRoooo
+ERIxxAONYxooo
+DSCSSNLSTxooo
+xxxOKDxCANTOS
+TOODYxxxLoooo
+CATSPAxoEoxxx
+oooxINDISPOSE
+oooxLOLZxxooo
+YELLOxooooooo
+LSEATxooooooo
+ESSESxooooooo
 
-optimalBacktrack:7 naiveBacktrack:66 recursive calls:130
+Time: 124
+Loops: 13768
+Sec per Loop: 0.00900639163277164
+Loops per Sec: 110.144
+
+optimalBacktrack:4725 naiveBacktrack:9015 recursive calls:13768
+sive calls:13401
