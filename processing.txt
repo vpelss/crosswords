@@ -1,0 +1,22 @@
+
+Loops per Sec: 700.543859649123
+SUTLERSxMoooo
+CSICLUExAoooo
+UNADULTxCoooo
+TOMxxEARAxooo
+ATONESFORxooo
+xxxNETxEToooo
+LAMPRxxxHoooo
+VERMINxoUoxxx
+oooxECOFREAKS
+oooxEATIxxooo
+RACERxooooooo
+ooooIxooooooo
+ooooExooooooo
+
+Time: 56
+Loops: 39931
+Sec per Loop: 0.00140241917307355
+Loops per Sec: 700.543859649123
+
+optimalBacktrack: naiveBacktrack:39907 recursive calls:39931

@@ -2,13 +2,7 @@
 
 #future ideas ver 3.0 meta recurse using blocks. blocks will consist of a starting word and dir and all it's crossing words
 
-#print common walk path data with title!
-#show sample of grids
-#explain walks
-#explain backtracking
-
 #allow sentences in words (strip out spaces)
-#allow super slowdoewn to see what is happening
 
 use strict;
 
@@ -24,10 +18,11 @@ my $archiveurl  = $vpvars::archiveurl;
 my $scripturl  = $vpvars::scripturl;
 
 print "Content-type: text/html\n\n";
-if ( -e "quickprint.txt") { print"Already running."; die("$0 is already running. Exiting.\n"); };
+if ( -e "processing.txt") { print"Already running."; die("$0 is already running. Exiting.\n"); };
 
-open(my $quickprint, ">quickprint.txt") or die "Can't open : $!";
-lock($quickprint);
+open(my $processing, ">processing.txt") or die "Can't open : $!";
+lock($processing);
+&PrintResults( qq| Wait for it! | ) ;
 $|=1; #keep it alive as long as possible as server allows
 
 #globals
@@ -119,12 +114,17 @@ my $timelimit = 60 * 1 ; #only allow the script to run this long
 my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &main; };     # Trap any fatal errors so the program hopefully
-if ($@) {  &quickprinttofile("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
+if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
 exit;   # There are only two exit calls in the script, here and in in &cgierr.
 
 my $game;
 my $uid;
 my $message;
+
+my $naiveBacktrack;
+my $optimalBacktrack;
+my %touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+my $oldTime;
 
 sub main {
 my @temp;
@@ -155,7 +155,7 @@ $in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 $timeForCrossword = time();
 
 $message = $message . "Loading or creating grid...\n";
-&quickprinttofile($message);
+&PrintProcessing($message);
 if ($debug ) {print "\n\nLoading or creating grid...\n\n";}
 if ($in{layouts} eq 'grids')
      {
@@ -176,12 +176,12 @@ if ($in{layouts} eq 'doublespaced')
      }
 
 $message = $message . "Numbering grid...\n";
-&quickprinttofile($message);
+&PrintProcessing($message);
 if ($debug ) {print time()-$timeForCrossword .  " sec Numbering grid...\n\n";}
 &numberBlankSquares();
 
 $message = $message . "Loading word list...\n";
-&quickprinttofile($message);
+&PrintProcessing($message);
 if ($debug ) {print time()-$timeForCrossword . " sec Loading word list...\n\n";}
 &LoadWordList( $in{wordfile} );
 
@@ -260,10 +260,10 @@ else {
       }
 
 
-&quickprinttofile();
+&PrintProcessing();
 if ($debug ) {print time()-$timeForCrossword . " sec Done.\n\nNumbering clue list.\n\n";}
 
-&quickprinttofile("Getting clues...");
+&PrintProcessing("Getting clues...");
 
 $timeForCrossword = time(); #reset counter so we mesure time to find solution only
 
@@ -339,21 +339,109 @@ close (DATA);
 #print qq|<META HTTP-EQUIV="Refresh" CONTENT="0; URL=$archiveurl/$uid/$game/?uid=$uid&name=$name">|; #name is for chat
 #print qq|<META HTTP-EQUIV="Refresh" CONTENT="0; URL=$archiveurl/$uid/$game/">|;
 
-&Quit( qq| Your crossword is at:<br><a href="$archivepath/$uid/$game/index.html">$archivepath/$uid/$game/index.html</a><br> |  );
+&PrintResults( qq| Your crossword is at:<br><a href="$archivepath/$uid/$game/index.html">$archivepath/$uid/$game/index.html</a><br> | );
+&Quit( qq| Done. Look at "Crossword Result after you click OK." |  );
 
 exit;
 }
 
 sub Quit()
 {
-#&quickprinttofile("!Erase with button below to allow other crosswords to be generated!\n\n $_[0]\n\n");
 print $_[0]; #feedback to web browser
-#unlock($quickprint);
-close($quickprint);
-sleep(20);
-unlink('quickprint.txt');
+#unlock($processing);
+close($processing);
+unlink('processing.txt');
 exit;
 }
+
+sub PrintResults()
+{
+my $message = $_[0];
+open(my $results, ">results.txt") or die "Can't open : $!";
+print $results  $message;
+close $results;
+};
+
+sub PrintProcessing {
+my $message = $_[0];
+my ($x , $y);
+my $line;
+my $string;
+my $time;
+$time =  time - $timeForCrossword;
+
+#open(my $processing, ">processing.txt") or die "Can't open : $!";
+
+#limit script run time!
+if ($time > $timelimit)
+     {
+     &PrintResults( qq| Time limit exceeded | );
+     &Quit( "Time limit exceeded<br>\n\n" );
+     }
+
+$string = $string . "\n";
+$string = $string . "Loops per Sec: " . $recursiveCount / (time + 1 - $timeForCrossword); #print time to create crosword
+$string = $string . "\n";
+
+for ($y = 0 ; $y < $in{height} ; $y++)
+      {
+      for ($x = 0 ; $x < $in{width} ; $x++)
+            {
+            my $t = &GetXY($x,$y);
+            $line = "$line$t";
+            }
+      $string = $string . $line;
+      $string = $string . "\n";
+      $line = '';
+      }
+
+for (my $wordNumber = 1 ; $wordNumber < 300 ; $wordNumber++)
+      {
+      for (my $dir = 0 ; $dir < 2 ; $dir++)
+            {
+            my $word = $allMasksOnBoard[$wordNumber][$dir];
+            #if (undef ne $word)
+            if ($word)
+                 {
+                 #$string = $string . "$wordNumber $dir: $word \n"
+                 }
+            }
+      }
+
+$string = $string . "\n";
+$string = $string . "Time: " . $time; #print time to create crosword
+$string = $string . "\n";
+$string = $string . "Loops: " . $recursiveCount; #print time to create crosword
+$string = $string . "\n";
+$string = $string . "Sec per Loop: " . (time - $timeForCrossword) / $recursiveCount; #print time to create crosword
+$string = $string . "\n";
+$string = $string .  "Loops per Sec: " . $recursiveCount / (time + 1 - $timeForCrossword); #print time to create crosword
+$string = $string . "\n\n";
+$string = $string . "optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";
+
+if ($message ne "") {
+     if ($string =~ /^!/)
+          {$string = "$message\n\n$string";}
+     else
+         {$string = "$message";}
+     }
+
+#$processing->flush();
+
+
+seek($processing, 0 , 0); #need to keep file open to lock it!
+#truncate $processing,0;
+
+print $processing "$string";
+
+#unlock($processing);
+#open(my $processing, ">processing.txt") or die "Can't open : $!";
+#lock($processing);
+
+
+#close($processing); #need to close so it erases file
+#open($processing, ">processing.txt") or die "Can't open : $!";
+};
 
 sub process_arguments {
 #process input arguments
@@ -1055,7 +1143,7 @@ for ( my $numberOfLetters = 2 ; $numberOfLetters < 21 ; $numberOfLetters++)
 foreach $wordLength ( keys %wordLengths)
          {
          $message = $message . "Loading words of length $wordLength...\n";
-         &quickprinttofile($message);
+         &PrintProcessing($message);
 
          $filename = "$directory$wordLength\.txt";
          #$filename = "$directory/all.txt";
@@ -1119,10 +1207,6 @@ my $tt = time() - $t;
 if ($debug ) {print "$lineCount lines and $wordCount words loaded in $tt sec \n\n";}
 }
 
-my $naiveBacktrack;
-my $optimalBacktrack;
-my %touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
-my $oldTime;
 sub RecursiveWords()
 {
 #recursive try to lay down words using @nextWordOnBoard, will shift of, store and unshift if required
@@ -1188,7 +1272,7 @@ while ($success == 0)
               {
               if ($debug ) {print time()-$timeForCrossword . " sec wordNumber:$wordNumber , dir:$dir $popWord optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";}
               else {print '.';} # otherwise apache timeout directive limit is reached
-              &quickprinttofile();
+              &PrintProcessing();
               $oldTime = time();
               }
 
@@ -1319,7 +1403,7 @@ MASTERLOOP: while ($success == 0)
               {
               if ($debug ) {print time()-$timeForCrossword . " sec wordNumber:$wordNumber , dir:$dir $popLetter optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";}
               else {print '.';} # otherwise apache timeout directive limit is reached
-              &quickprinttofile();
+              &PrintProcessing();
               $oldTime = time();
               }
 
@@ -1663,7 +1747,7 @@ $position = $PositionInWord[$x][$y][1];
 if ($wordNumber != undef)
      {
      #print ("vert mask x:$x y:$y wordNumber:$wordNumber horiz:$allMasksOnBoard[$wordNumber][0] vert:$allMasksOnBoard[$wordNumber][1] position:$position letter:$letter\n\n");
-     #quickprinttofile;
+     #PrintProcessing;
      substr($allMasksOnBoard[$wordNumber][1] , $position , 1 , $letter) or die ("vert mask x:$x y:$y wordNumber:$wordNumber horiz:$allMasksOnBoard[$wordNumber][0] vert:$allMasksOnBoard[$wordNumber][1] position:$position letter:$letter");
      }
 }
@@ -1680,86 +1764,6 @@ my $dir;
 
 return $puzzle[$x][$y]->{Letter};
 }
-
-sub quickprinttofile {
-my $message = $_[0];
-my ($x , $y);
-my $line;
-my $string;
-my $time;
-$time =  time - $timeForCrossword;
-
-#open(my $quickprint, ">quickprint.txt") or die "Can't open : $!";
-
-#limit script run time!
-if ($time > $timelimit)
-     {
-     &Quit(  "Time limit exceeded<br>\n\n" );
-     }
-
-$string = $string . "\n";
-$string = $string . "Loops per Sec: " . $recursiveCount / (time + 1 - $timeForCrossword); #print time to create crosword
-$string = $string . "\n";
-
-for ($y = 0 ; $y < $in{height} ; $y++)
-      {
-      for ($x = 0 ; $x < $in{width} ; $x++)
-            {
-            my $t = &GetXY($x,$y);
-            $line = "$line$t";
-            }
-      $string = $string . $line;
-      $string = $string . "\n";
-      $line = '';
-      }
-
-for (my $wordNumber = 1 ; $wordNumber < 300 ; $wordNumber++)
-      {
-      for (my $dir = 0 ; $dir < 2 ; $dir++)
-            {
-            my $word = $allMasksOnBoard[$wordNumber][$dir];
-            #if (undef ne $word)
-            if ($word)
-                 {
-                 #$string = $string . "$wordNumber $dir: $word \n"
-                 }
-            }
-      }
-
-$string = $string . "\n";
-$string = $string . "Time: " . $time; #print time to create crosword
-$string = $string . "\n";
-$string = $string . "Loops: " . $recursiveCount; #print time to create crosword
-$string = $string . "\n";
-$string = $string . "Sec per Loop: " . (time - $timeForCrossword) / $recursiveCount; #print time to create crosword
-$string = $string . "\n";
-$string = $string .  "Loops per Sec: " . $recursiveCount / (time + 1 - $timeForCrossword); #print time to create crosword
-$string = $string . "\n\n";
-$string = $string . "optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";
-
-if ($message ne "") {
-     if ($string =~ /^!/)
-          {$string = "$message\n\n$string";}
-     else
-         {$string = "$message";}
-     }
-
-#$quickprint->flush();
-
-
-seek($quickprint, 0 , 0); #need to keep file open to lock it!
-#truncate $quickprint,0;
-
-print $quickprint "$string";
-
-#unlock($quickprint);
-#open(my $quickprint, ">quickprint.txt") or die "Can't open : $!";
-#lock($quickprint);
-
-
-#close($quickprint); #need to close so it erases file
-#open($quickprint, ">quickprint.txt") or die "Can't open : $!";
-};
 
 sub javascriptArrayFromLetterPositions()
 {
@@ -2124,11 +2128,10 @@ sub cgierr
 # Displays any errors and prints out FORM and ENVIRONMENT
 # information. Useful for debugging.
 
-unlock($quickprint);
-close($quickprint);
-unlink('quickprint.txt');
-
-if ($debug == 0) {print "Epic fail...."; exit;}
+if ($debug == 0) {
+     print "Epic fail....";
+     &Quit();
+     }
 
 print "<PRE>\n\nCGI ERROR\n==========================================\n";
 $_[0]      and print "Error Message       : $_[0]\n";
@@ -2149,6 +2152,8 @@ $]         and print "Perl Version        : $]\n";
             print "$env$space: $ENV{$env}\n";
             }
 print "\n</PRE>";
+
+&Quit();
 exit -1;
 };
 
