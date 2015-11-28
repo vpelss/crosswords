@@ -5,12 +5,23 @@
 #allow sentences in words (strip out spaces)
 
 # speed up word load use 1 line of coma, separated words
+
 #letter search fails on some databases....
 #error in optimal letter!
 #return %touchingLetters; maybe return \%touchingLetters;
 #missing branches of search tree.
 #copy hash {}{} is it correct???? error!!!!!
+
 # same error with %touchingWordsForBackTrack   ?????
+
+#on optimal, what if there is no upper or left letter? cancel optimal! or no touchong words in optimal list tat we have laid yet
+
+#  not that only touching words or letters that are full (have been visited already!) really afect this
+# so use a hash of $wordNumberDirUsed{$wordNumber}{$dir} = 1 or undef
+# so use a hash of $letterXYUsed{$x}{$x} = 1 or undef
+
+#global optimal list (not really a list, but a single target!  If empty then naive) precalculated?
+#maybe not as walk may depend on return.... but if we calculate it after the walk, maybe
 
 use strict;
 
@@ -31,7 +42,7 @@ if ( -e "processing.txt") { print"Already running."; die("$0 is already running.
 open(my $processing, ">processing.txt") or die "Can't open : $!";
 lock($processing);
 &PrintResults( qq| Wait for it! | ) ;
-$|=1; #keep it alive as long as possible as server allows
+$|=1; #keep it alive as long as possible
 
 #globals
 my %in; #input arguments $in{argname}
@@ -119,7 +130,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -129,8 +140,10 @@ my $game;
 my $uid;
 my $message;
 
-my $naiveBacktrack;
-my $optimalBacktrack;
+#optimal search variables
+my %wordNumberDirUsed; #$wordNumberDirUsed{$wordNumber}{$dir} so we only backtrack or note words that have been filled
+my $naiveBacktrack; #a counter
+my $optimalBacktrack; #a counter
 my %touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
 my $oldTime;
 
@@ -157,7 +170,7 @@ $in{wordfile} = "Sympathy_31121";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-#%in = &parse_form; #get input arguments. comment out for commandline running
+%in = &parse_form; #get input arguments. comment out for commandline running
 
 &process_arguments;
 
@@ -1249,11 +1262,15 @@ while ($success == 0)
         {
         if (scalar @wordsThatFit == 0) #are there any possible words? If no backtrack
               {
-              #fail to find a list of words going forward or we are out of words in a recursion so go back a word
+              #fail to find a list of words going forward or we are out of pop words in a recursion so go back a word
               unshift @nextWordOnBoard , {wordNumber => $wordNumber, dir => $dir};
               #optimal backtrack option. saves hundreds of naive backtracks!
               #get/set global touchingWords and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
-              %touchingWordsForBackTrack = &GetTouchingWords($wordNumber,$dir);
+              if ($in{optimalbacktrack} == 1)
+                    {
+                    %touchingWordsForBackTrack = &GetTouchingWords($wordNumber,$dir);
+                    }
+              $wordNumberDirUsed{$wordNumber}{$dir} = undef;
               return 0;
               }; #no words so fail
 
@@ -1268,6 +1285,7 @@ while ($success == 0)
                  {
                  &placeMaskOnBoard($wordNumber , $dir , $popWord);
                  $wordsThatAreInserted{$popWord} = 1;
+                 $wordNumberDirUsed{$wordNumber}{$dir} = 1;
                  }
 
         #if ($countprint > 10)
@@ -1310,6 +1328,7 @@ while ($success == 0)
                     #still in optimal backtrack so keep going back
                     unshift @nextWordOnBoard , {wordNumber => $wordNumber, dir => $dir};
                     $optimalBacktrack++;
+                    $wordNumberDirUsed{$wordNumber}{$dir} = undef;
                     return 0;
                     }
               }
@@ -1454,7 +1473,7 @@ die('never get here'); #never get here
 sub GetTouchingWords()
 {
 #input: word number and direcction
-#output: hash (quick access) of words number and direction of words that cross and adjoin (horiz - above/below , vert left/right)
+#output: hash (quick access) of words number and direction of words that cross and paralell (horiz - above/below , vert left/right)
 # $touchingWords{#}{dir} = 1
 
 my %touchingWords;
@@ -1468,7 +1487,6 @@ my $letterPosition;
 my $crossingWordNumber;
 my $adjoiningWordNumber;
 
-#print "for word $wordNumber dir $dir\n";
 #for adjoining search
 my $divX;
 my $divY;
@@ -1490,19 +1508,22 @@ foreach $letterPosition (@wordLetterPositions)
 
   #find and mark crossing words
   $crossingWordNumber = $ThisSquareBelongsToWordNumber[$x][$y][$crossingWordDir];
-  $touchingWords{$crossingWordNumber}{$crossingWordDir} = 1;
-  #print "crossing word $crossingWordNumber\n";
+  if ($wordNumberDirUsed{$crossingWordNumber}{$crossingWordDir} == 1){ #only of it has been filled
+       $touchingWords{$crossingWordNumber}{$crossingWordDir} = 1;
+       }
 
   #find and mark adjoining words
   $adjoiningWordNumber = $ThisSquareBelongsToWordNumber[$x + $divX][$y + $divY][$dir];
   if ($adjoiningWordNumber > 0) {
-       $touchingWords{$adjoiningWordNumber}{$dir} = 1;
-       #print "adjoining word $adjoiningWordNumber\n";
+       if ($wordNumberDirUsed{$adjoiningWordNumber}{$dir} == 1){ #only of it has been filled
+            $touchingWords{$adjoiningWordNumber}{$dir} = 1;
+            }
        }
   $adjoiningWordNumber = $ThisSquareBelongsToWordNumber[$x - $divX][$y - $divY][$dir];
   if ($adjoiningWordNumber > 0) {
-       $touchingWords{$adjoiningWordNumber}{$dir} = 1;
-       #print "adjoining word $adjoiningWordNumber\n";
+       if ($wordNumberDirUsed{$adjoiningWordNumber}{$dir} == 1){ #only of it has been filled
+            $touchingWords{$adjoiningWordNumber}{$dir} = 1;
+            }
        }
   }
 return %touchingWords;

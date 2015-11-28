@@ -1,0 +1,22 @@
+
+Loops per Sec: 542.392857142857
+PRONETOxEoooo
+RERIDESxXoooo
+ECOCARSxPoooo
+SUUxxAETAxooo
+TTTTTTTTTxooo
+xxxTKOxTRoooo
+PRCLNxxxIoooo
+HAPPSSxoOoxxx
+oooxBUMSTEERS
+oooxRIVExxooo
+TAKETxooooooo
+ooooHxooooooo
+ooooWxooooooo
+
+Time: 27
+Loops: 15187
+Sec per Loop: 0.00177783630736814
+Loops per Sec: 542.392857142857
+
+optimalBacktrack: naiveBacktrack:15163 recursive calls:15187
