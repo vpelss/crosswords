@@ -6,6 +6,11 @@
 
 # speed up word load use 1 line of coma, separated words
 #letter search fails on some databases....
+#error in optimal letter!
+#return %touchingLetters; maybe return \%touchingLetters;
+#missing branches of search tree.
+#copy hash {}{} is it correct???? error!!!!!
+# same error with %touchingWordsForBackTrack   ?????
 
 use strict;
 
@@ -145,13 +150,14 @@ srand;
 $in{TimeLimit} = 5;
 $in{layouts} = 'grids';
 $in{grid} = 'BigOne';
+#$in{grid} = '3x3';
 $in{optimalbacktrack} = 1;
 $in{wordfile} = "Sympathy_31121";
 #$in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-%in = &parse_form; #get input arguments. comment out for commandline running
+#%in = &parse_form; #get input arguments. comment out for commandline running
 
 &process_arguments;
 
@@ -251,7 +257,10 @@ if ( $in{mode} eq 'word' ) {
      &RecursiveWords();
      }
 else {
-     &RecursiveLetters();
+     if ( &RecursiveLetters() == 0 )
+           {
+           print "\n\nFailed to fill grid Counts:$recursiveCount \n\n";
+           }
       }
 
 &PrintProcessing();
@@ -1349,6 +1358,7 @@ MASTERLOOP: while ($success == 0)
               #optimal backtrack option. saves hundreds of naive backtracks!
               #get/set global touchingLetters and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
               %touchingLettersForBackTrack = &GetTouchingLetters($x,$y);
+              #&GetTouchingLetters($x,$y);
               return 0;
               }; #no words so fail
 
@@ -2403,8 +2413,8 @@ sub GetTouchingLetters()
 #input: cell position x , y
 #output: hash (quick access) of cell postions {x}{y}=1 that are above and before
 #$touchingLetters{x}{y} = 1
-
-my %touchingLetters;
+my %touchingLettersForBackTrack;
+#my %touchingLetters;
 
 my $x = $_[0];
 my $y = $_[1];
@@ -2413,7 +2423,7 @@ $x = $x - 1;
 my $char = &GetXY($x,$y);
 if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $unoccupied) )
      {
-     $touchingLetters{$x}{$y}=1;
+     $touchingLettersForBackTrack{$x}{$y}=1;
      }
 $x = $x + 1;
 
@@ -2421,11 +2431,11 @@ $y = $y - 1;
 $char = &GetXY($x,$y);
 if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $unoccupied) )
      {
-     $touchingLetters{$x}{$y}=1;
+     $touchingLettersForBackTrack{$x}{$y}=1;
      }
 $y = $y + 1;
 
-return %touchingLetters;
+return %touchingLettersForBackTrack;
 }
 
 sub IsWordAlreadyUsed() {
