@@ -4,6 +4,9 @@
 
 #allow sentences in words (strip out spaces)
 
+# speed up word load use 1 line of coma, separated words
+#letter search fails on some databases....
+
 use strict;
 
 use CGI;
@@ -111,7 +114,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -143,8 +146,8 @@ $in{TimeLimit} = 5;
 $in{layouts} = 'grids';
 $in{grid} = 'BigOne';
 $in{optimalbacktrack} = 1;
-#$in{wordfile} = "sympathyClues_31121";
-$in{wordfile} = "Clues_248505";
+$in{wordfile} = "Sympathy_31121";
+#$in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
@@ -184,12 +187,6 @@ $message = $message . "Loading word list...\n";
 &PrintProcessing($message);
 if ($debug ) {print time()-$timeForCrossword . " sec Loading word list...\n\n";}
 &LoadWordList( $in{wordfile} );
-
-#my @tt = &WordsFromLetterLists(['C','D','F','T','Z'] , ['A'] , ['T','R','E','W','Q','Z']);
-#my @tt = &WordsFromLetterLists(['C','D','F','T','Z'] , [$padsEitherSide] , ['T','R','E','W','Q','Z']); #$padsEitherSide here means that there is a pad on either side so assume all letters!
-#my @tt = &WordsFromMask("ooT");
-#my @tt = &NthLettersFromListOfWords(2,['GOAT','HYUI','OoUY']);
-#print "@tt\n\n";
 
 if ($debug ) {print time()-$timeForCrossword . " sec Calculating word walk path...\n\n";}
 if ($in{walkpath} eq 'crossingwords')
@@ -248,8 +245,6 @@ if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardSnakeWalk')
      $in{mode} = 'letter';
      }
 
-
-
 $timeForCrossword = time(); #reset counter so we mesure time to find solution only
 
 if ( $in{mode} eq 'word' ) {
@@ -258,7 +253,6 @@ if ( $in{mode} eq 'word' ) {
 else {
      &RecursiveLetters();
       }
-
 
 &PrintProcessing();
 if ($debug ) {print time()-$timeForCrossword . " sec Done.\n\nNumbering clue list.\n\n";}
@@ -1268,7 +1262,7 @@ while ($success == 0)
                  }
 
         #if ($countprint > 10)
-        if (time() > $oldTime + 3) #print every 3 seconds
+        if (time() > $oldTime + 2) #print every 3 seconds
               {
               if ($debug ) {print time()-$timeForCrossword . " sec wordNumber:$wordNumber , dir:$dir $popWord optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";}
               else {print '.';} # otherwise apache timeout directive limit is reached
@@ -1399,7 +1393,7 @@ MASTERLOOP: while ($success == 0)
              $wordsThatAreInserted{$vertMask} = 1;
              }
 
-        if (time() > $oldTime + 3) #print every 3 seconds
+        if (time() > $oldTime + 2) #print every 3 seconds
               {
               if ($debug ) {print time()-$timeForCrossword . " sec wordNumber:$wordNumber , dir:$dir $popLetter optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";}
               else {print '.';} # otherwise apache timeout directive limit is reached

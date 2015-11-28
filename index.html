@@ -120,19 +120,25 @@
 
                                                           </TR>
                                                           <TR>
-                                                                <TD VALIGN="TOP"><INPUT TYPE="radio"
+                                                                <TD VALIGN="TOP">
+                                                                <INPUT TYPE="radio"
                                                                   NAME="wordfile" CHECKED="CHECKED" VALUE="Clues_248505">
                                                                   <A HREF="./wordlists/Clues_248505/stats.txt" TARGET="_blank">248,505 Words</A>
-                                                                  (recommended)<BR><INPUT TYPE="radio" NAME="wordfile" VALUE="Sympathy_31121">
+                                                                  (recommended)<BR>
+                                                                  <INPUT TYPE="radio" NAME="wordfile" VALUE="Sympathy_31121">
                                                                   <A HREF="./wordlists/Sympathy_31121/stats.txt" TARGET="_blank">31,121
-                                                                  Words</A><BR><INPUT TYPE="radio" NAME="wordfile"
+                                                                  Words</A><BR>
+                                                                  <INPUT TYPE="radio" NAME="wordfile"
                                                                   VALUE="Magnum_Eng_Clues_30420">
                                                                   <A HREF="./wordlists/Magnum_Eng_Clues_30420/stats.txt" TARGET="_blank">30,420
-                                                                  Words</A><BR><INPUT TYPE="radio" NAME="wordfile" VALUE="CrosswordSolver_18790">
+                                                                  Words</A><BR>
+                                                                  <INPUT TYPE="radio" NAME="wordfile" VALUE="CrosswordSolver_18790">
                                                                   <A HREF="./wordlists/CrosswordSolver_18790/stats.txt" TARGET="_blank">18,790
-                                                                  Words</A><BR><INPUT TYPE="radio" NAME="wordfile" VALUE="CSolver_18675">
+                                                                  Words</A><BR>
+                                                                  <INPUT TYPE="radio" NAME="wordfile" VALUE="CSolver_18675">
                                                                   <A HREF="./wordlists/CSolver_18675/stats.txt" TARGET="_blank">18,675
-                                                                  Words</A><BR><INPUT TYPE="radio" NAME="wordfile"
+                                                                  Words</A><BR>
+                                                                  <INPUT TYPE="radio" NAME="wordfile"
                                                                   VALUE="CrosswordComiler_17763">
                                                                   <A HREF="./wordlists/CrosswordComiler_17763/stats.txt" TARGET="_blank">17,763
                                                                   Words</A><BR> </TD>
@@ -288,7 +294,7 @@ function Get_Results()
                                           )
                                           //.done(function() {} )
                                 //.always(function() { //alert( "finished"); })
-                                 .fail(function() { $("#PrintResults").html( '...no other crosswords running...' ) } );
+                                .fail(function() { $("#PrintResults").html( 'no results file' ) } );
         //setTimeout( "Get_Results();" , 1000 ); //keep the ball rolling
         };
 

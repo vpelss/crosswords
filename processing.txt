@@ -1,22 +1,22 @@
 
-Loops per Sec: 700.543859649123
-SUTLERSxMoooo
-CSICLUExAoooo
-UNADULTxCoooo
-TOMxxEARAxooo
-ATONESFORxooo
-xxxNETxEToooo
-LAMPRxxxHoooo
-VERMINxoUoxxx
-oooxECOFREAKS
-oooxEATIxxooo
-RACERxooooooo
-ooooIxooooooo
-ooooExooooooo
+Loops per Sec: 234.927272727273
+ooooooSxoooDo
+DERRICKxoooAo
+DISABLExJAZZY
+oooxxoIooxoEo
+ooooooNooxoDo
+xxxOARxooLoLo
+oooooxxxoAoYo
+ooooooxooSxxx
+oooxoooooHooo
+oooxVERYxxooo
+oooWoxooooooo
+PETALxooooooo
+oooRoxooooooo
 
-Time: 56
-Loops: 39931
-Sec per Loop: 0.00140241917307355
-Loops per Sec: 700.543859649123
+Time: 54
+Loops: 12921
+Sec per Loop: 0.00417924309263989
+Loops per Sec: 234.927272727273
 
-optimalBacktrack: naiveBacktrack:39907 recursive calls:39931
+optimalBacktrack:8512 naiveBacktrack:4398 recursive calls:12921
