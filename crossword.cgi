@@ -165,17 +165,18 @@ if ($uid eq '') {$uid='common'} #for non facebook games
 
 srand;
 
-$in{TimeLimit} = 5;
+$in{TimeLimit} = 1;
 $in{layouts} = 'grids';
 $in{grid} = 'BigOne';
-#$in{grid} = '3x3';
+$in{grid} = '5x5';
 $in{optimalbacktrack} = 1;
+$in{shuffle} = 1;
 $in{wordfile} = "Sympathy_31121";
 #$in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-%in = &parse_form; #get input arguments. comment out for commandline running
+#%in = &parse_form; #get input arguments. comment out for commandline running
 
 &process_arguments;
 
@@ -1238,14 +1239,12 @@ if ($debug ) {print "$lineCount lines and $wordCount words loaded in $tt sec \n\
 
 sub RecursiveWords()
 {
-#recursive try to lay down words using @nextWordOnBoard, will shift of, store and unshift if required
+#recursive try to lay down words using @nextWordOnBoard, will shift off, store and unshift if required
 #store locally the possible words in  @possibleLetterLists
 #in just the next index in a list (@NextWordPositionsOnBoard) of word position we are trying to fill
 
 my @wordsThatFit;
 my $popWord;
-
-#$recursiveCounts++;
 
 %touchingWordsForBackTrack = (); #clear global indicating that we are moving forward and have cleared the backtrack state
 
@@ -1260,7 +1259,7 @@ my $mask = $allMasksOnBoard[$wordNumber][$dir]; # get WORD or MASK at this cross
 if ($in{simplewordmasksearch}) {
      #simple one. 0.0002 sec a call.  better for less crosslinks?
      #ignore crossing words as future mask checks will find the failures/errors. not true for some walks as there msay be no crossword checking!
-     #it will only work well with alternating across and down checks 
+     #it will only work well with alternating across and down checks
       if ($in{shuffle}) {
            @wordsThatFit = shuffle &WordsFromMask($mask);
            }
@@ -1290,9 +1289,8 @@ while ($success == 0)
               #or we are out of pop words in a recursion (while loop) so go back a word
               unshift @nextWordOnBoard , {wordNumber => $wordNumber, dir => $dir};
               #get/set global touchingWords and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
-              if ($in{optimalbacktrack} == 1)
-                    {
-                    %touchingWordsForBackTrack = &GetTouchingWords($wordNumber,$dir);
+              if ($in{optimalbacktrack} == 1) {
+                    &GetTouchingWords($wordNumber,$dir);
                     }
               $wordNumberDirUsed{$wordNumber}{$dir} = undef;
               return 0;
@@ -1344,7 +1342,6 @@ while ($success == 0)
               #we are doing an optimal backtrack
               if ($touchingWordsForBackTrack{$wordNumber}{$dir} == 1) {
                    #we have hit the optimal target. turn off optimal backtrack
-                   #print "optimal: word:$wordNumber dir:$dir \n";
                    %touchingWordsForBackTrack = ();
                    }
               else {
@@ -1370,6 +1367,7 @@ sub RecursiveLetters()
 #store locally the possible letters in  @possibleLetter
 #in just the next index in a list (@nextLetterPositionsOnBoard) of word position we are trying to fill
 
+my @lettersThatFit;
 my $popLetter;
 my $wordNumber;
 my $horizMask;
@@ -1385,12 +1383,17 @@ my %cellPosition =  %{ shift @nextLetterPositionsOnBoard }; #keep %cellPosition 
 my $x = $cellPosition{x};
 my $y = $cellPosition{y};
 
-my @lettersThatFit =  shuffle &lettersPossibleAtCell($x,$y); # 0.000059 sec per call
+if ($in{shuffle}) {
+     @lettersThatFit =  shuffle &lettersPossibleAtCell($x,$y); # 0.000059 sec per call
+     }
+else {
+      @lettersThatFit = sort {$b cmp $a} &lettersPossibleAtCell($x,$y); # 0.000059 sec per call
+      }
 
 $recursiveCount++; #count forward moving calls
 
 my $success = 0;
-MASTERLOOP: while ($success == 0)
+while ($success == 0)
         {
         if (scalar @lettersThatFit == 0) #are there any possible words? If no backtrack
               {
@@ -1399,10 +1402,11 @@ MASTERLOOP: while ($success == 0)
 
               #optimal backtrack option. saves hundreds of naive backtracks!
               #get/set global touchingLetters and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
-              %touchingLettersForBackTrack = &GetTouchingLetters($x,$y);
-              #&GetTouchingLetters($x,$y);
+              if ($in{optimalbacktrack} == 1) {
+                   &GetTouchingLetters($x,$y);
+                   }
               return 0;
-              }; #no words so fail
+              }; #no letters so fail
 
         #try the next word that fit in this location
         $popLetter = pop @lettersThatFit;
@@ -1418,7 +1422,6 @@ MASTERLOOP: while ($success == 0)
                    next ; #choose another word ie. pop
                    }
              }
-        #else {$horizMask = 'o'} #ignore as this is just a letter, not a word
         #vert
         $wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][1];
         if ($wordNumber > 0) {
@@ -1428,22 +1431,25 @@ MASTERLOOP: while ($success == 0)
                    next ; #choose another word ie. pop
                    }
              }
-        #else {$vertMask = 'o'} #ignore as this is just a letter, not a word
 
-        #continue and mark horiz and vert wwords if full words
+        #continue and mark horiz and vert words if full words
 
         #check to see if horiz and vert mask are full words. if so then mark word as used
         #how will we unmark?
         #horiz
-        if ($wordsThatAreInserted{$horizMask} == 0) { #this word is already used. fail
-             $horizInsertedWord = $horizMask; #so we can easily remove on failed recursins
-             $wordsThatAreInserted{$horizMask} = 1;
-             }
+        if (not $horizMask =~ /$unoccupied/) {
+            if ($wordsThatAreInserted{$horizMask} == 0) { #this word is already used. fail
+                 $horizInsertedWord = $horizMask; #so we can easily remove on failed recursions
+                 $wordsThatAreInserted{$horizMask} = 1;
+                 }
+            }
         #vert
-        if ($wordsThatAreInserted{$vertMask} == 0) { #this word is already used. fail
-             $vertInsertedWord = $vertMask; #so we can easily remove on failed recursins
-             $wordsThatAreInserted{$vertMask} = 1;
-             }
+        if (not $vertMask =~ /$unoccupied/) {
+            if ($wordsThatAreInserted{$vertMask} == 0) { #this word is already used. fail
+                 $vertInsertedWord = $vertMask; #so we can easily remove on failed recursions
+                 $wordsThatAreInserted{$vertMask} = 1;
+                 }
+            }
 
         if (time() > $oldTime + 2) #print every 3 seconds
               {
@@ -1496,10 +1502,9 @@ die('never get here'); #never get here
 sub GetTouchingWords()
 {
 #input: word number and direcction
-#output: hash (quick access) of words number and direction of words that cross and paralell (horiz - above/below , vert left/right)
-# $touchingWords{#}{dir} = 1
+#output: global hash (quick access) of words number and direction of words that are used and that cross and paralell (horiz - above/below , vert left/right)
+# $touchingWordsForBackTrack{#}{dir} = 1
 
-my %touchingWords;
 my $wordNumber = $_[0];
 my $dir = $_[1];
 
@@ -1532,24 +1537,23 @@ foreach $letterPosition (@wordLetterPositions)
   #find and mark crossing words
   $crossingWordNumber = $ThisSquareBelongsToWordNumber[$x][$y][$crossingWordDir];
   if ($wordNumberDirUsed{$crossingWordNumber}{$crossingWordDir} == 1){ #only of it has been filled
-       $touchingWords{$crossingWordNumber}{$crossingWordDir} = 1;
+       $touchingWordsForBackTrack{$crossingWordNumber}{$crossingWordDir} = 1;
        }
 
   #find and mark adjoining words
   $adjoiningWordNumber = $ThisSquareBelongsToWordNumber[$x + $divX][$y + $divY][$dir];
   if ($adjoiningWordNumber > 0) {
        if ($wordNumberDirUsed{$adjoiningWordNumber}{$dir} == 1){ #only of it has been filled
-            $touchingWords{$adjoiningWordNumber}{$dir} = 1;
+            $touchingWordsForBackTrack{$adjoiningWordNumber}{$dir} = 1;
             }
        }
   $adjoiningWordNumber = $ThisSquareBelongsToWordNumber[$x - $divX][$y - $divY][$dir];
   if ($adjoiningWordNumber > 0) {
        if ($wordNumberDirUsed{$adjoiningWordNumber}{$dir} == 1){ #only of it has been filled
-            $touchingWords{$adjoiningWordNumber}{$dir} = 1;
+            $touchingWordsForBackTrack{$adjoiningWordNumber}{$dir} = 1;
             }
        }
   }
-return %touchingWords;
 }
 
 sub GetCrossingWords()
@@ -2416,11 +2420,11 @@ if ($wordNumber > 0) { #there is a vert mask
      if (scalar @lettersVert == 0 ) { #should never get here as our $linearWordSearch does not stop mid word
            die ('no \@lettersVert. impossible');
            }
-     if (scalar( @lettersVert) == 1) { #only one letter possible. The word may be unique. so check to see if this word is already used
-         if (&IsWordAlreadyUsed($mask)) {
-              return (); #return empty as this word is already used
-              }
-         }
+#     if (scalar( @lettersVert) == 1) { #only one letter possible. The word may be unique. so check to see if this word is already used
+#         if (&IsWordAlreadyUsed($mask)) {
+#              return (); #return empty as this word is already used
+#              }
+#         }
      }
 
 #find horiz mask and possible letters
@@ -2432,11 +2436,11 @@ if ($wordNumber > 0) { #there is a horiz mask
      if ( scalar @lettersHoriz == 0 ) { #should never get here as our $linearWordSearch does not stop mid word
             die ('no \@lettersHoriz. impossible');
            }
-     if (scalar( @lettersHoriz) == 1) { #only one letter possible. The worrd may be unique. so check to see if this word is already used
-         if (&IsWordAlreadyUsed($mask)) {
-               return (); #return empty as this word is already used
-               }
-         }
+#     if (scalar( @lettersHoriz) == 1) { #only one letter possible. The worrd may be unique. so check to see if this word is already used
+#         if (&IsWordAlreadyUsed($mask)) {
+#               return (); #return empty as this word is already used
+#               }
+#         }
      }
 
 if (($isHorizWord) and ($isVertWord)) { #there is a horiz and vert word at this cell. find inersection of possible letters
@@ -2455,10 +2459,7 @@ die('should not get to end of letterPossibleAt()');
 sub GetTouchingLetters()
 {
 #input: cell position x , y
-#output: hash (quick access) of cell postions {x}{y}=1 that are above and before
-#$touchingLetters{x}{y} = 1
-my %touchingLettersForBackTrack;
-#my %touchingLetters;
+#output: global hash (quick access) of cell postions {x}{y}=1 that are above and before
 
 my $x = $_[0];
 my $y = $_[1];
@@ -2469,7 +2470,7 @@ if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $
      {
      $touchingLettersForBackTrack{$x}{$y}=1;
      }
-$x = $x + 1;
+$x = $_[0];
 
 $y = $y - 1;
 $char = &GetXY($x,$y);
@@ -2477,9 +2478,6 @@ if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $
      {
      $touchingLettersForBackTrack{$x}{$y}=1;
      }
-$y = $y + 1;
-
-return %touchingLettersForBackTrack;
 }
 
 sub IsWordAlreadyUsed() {
