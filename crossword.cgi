@@ -6,6 +6,10 @@
 
 # speed up word load use 1 line of coma, separated words
 
+# turn on simple word recursion option
+
+#separate experimental options on front page
+
 #letter search fails on some databases....
 #error in optimal letter!
 #return %touchingLetters; maybe return \%touchingLetters;
@@ -22,6 +26,7 @@
 
 #global optimal list (not really a list, but a single target!  If empty then naive) precalculated?
 #maybe not as walk may depend on return.... but if we calculate it after the walk, maybe
+#very hard to know which target to choose in advance!
 
 use strict;
 
@@ -267,12 +272,20 @@ if ($in{walkpath} eq 'GenerateNextLetterPositionsOnBoardSnakeWalk')
 $timeForCrossword = time(); #reset counter so we mesure time to find solution only
 
 if ( $in{mode} eq 'word' ) {
-     &RecursiveWords();
+     if ( &RecursiveWords() == 0 ) {
+           $message = "\n\nFailed to fill grid Counts:$recursiveCount \n\n";
+           print $message;
+           PrintResults($message);
+           &Quit();
+           }
      }
 else {
      if ( &RecursiveLetters() == 0 )
            {
-           print "\n\nFailed to fill grid Counts:$recursiveCount \n\n";
+           $message = "\n\nFailed to fill grid Counts:$recursiveCount \n\n";
+           print $message;
+           PrintResults($message);
+           &Quit();
            }
       }
 
@@ -1229,6 +1242,7 @@ sub RecursiveWords()
 #store locally the possible words in  @possibleLetterLists
 #in just the next index in a list (@NextWordPositionsOnBoard) of word position we are trying to fill
 
+my @wordsThatFit;
 my $popWord;
 
 #$recursiveCounts++;
@@ -1243,17 +1257,27 @@ my $dir = $wordPosition{dir};
 #get all possible words for mask
 my $mask = $allMasksOnBoard[$wordNumber][$dir]; # get WORD or MASK at this crossword position
 
-#complex one 0.05 sec a call. better for more crosslinks?
-#does remarkably well on big1.txt
-my @possibleLetterLists = &LetterListsFor($wordNumber , $dir);
-#my @wordsThatFit = sort {$b cmp $a} &WordsFromLetterLists(@possibleLetterLists);
-my @wordsThatFit = shuffle &WordsFromLetterLists(@possibleLetterLists);
-
-#simple one. 0.0002 sec a call.  better for less crosslinks?
-#ignore crossing words as future mask checks will find the failures/errors. not true for some walks as there msay be no crossword checking!
-#it will only work with alternating across and down checks GenerateNextWordPositionsOnBoardColRow
-#my @wordsThatFit = sort {$b cmp $a} &WordsFromMask($mask);
-#my @wordsThatFit = shuffle &WordsFromMask($mask);
+if ($in{simplewordmasksearch}) {
+     #simple one. 0.0002 sec a call.  better for less crosslinks?
+     #ignore crossing words as future mask checks will find the failures/errors. not true for some walks as there msay be no crossword checking!
+     #it will only work well with alternating across and down checks 
+      if ($in{shuffle}) {
+           @wordsThatFit = shuffle &WordsFromMask($mask);
+           }
+      else {
+           @wordsThatFit = sort {$b cmp $a} &WordsFromMask($mask);
+            }
+     }
+else {
+      #complex one 0.05 sec a call. better for more crosslinks?
+      my @possibleLetterLists = &LetterListsFor($wordNumber , $dir);
+      if ($in{shuffle}) {
+           @wordsThatFit = shuffle &WordsFromLetterLists(@possibleLetterLists);
+           }
+      else {
+            @wordsThatFit = sort {$b cmp $a} &WordsFromLetterLists(@possibleLetterLists);
+            }
+      }
 
 $recursiveCount++; #count forward moving calls
 
@@ -1262,9 +1286,9 @@ while ($success == 0)
         {
         if (scalar @wordsThatFit == 0) #are there any possible words? If no backtrack
               {
-              #fail to find a list of words going forward or we are out of pop words in a recursion so go back a word
+              #fail to find a list of words going forward
+              #or we are out of pop words in a recursion (while loop) so go back a word
               unshift @nextWordOnBoard , {wordNumber => $wordNumber, dir => $dir};
-              #optimal backtrack option. saves hundreds of naive backtracks!
               #get/set global touchingWords and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
               if ($in{optimalbacktrack} == 1)
                     {
@@ -1278,7 +1302,7 @@ while ($success == 0)
         $popWord = pop @wordsThatFit;
         if ($wordsThatAreInserted{$popWord} == 1) #this word is already used. fail
                   {
-                 &placeMaskOnBoard($wordNumber , $dir , $mask);  #is this required? we have not layed pop word
+                 #&placeMaskOnBoard($wordNumber , $dir , $mask);  #is this required? we have not layed pop word
                  next; #choose another word ie. pop
                   }
         else #place word
@@ -1288,7 +1312,6 @@ while ($success == 0)
                  $wordNumberDirUsed{$wordNumber}{$dir} = 1;
                  }
 
-        #if ($countprint > 10)
         if (time() > $oldTime + 2) #print every 3 seconds
               {
               if ($debug ) {print time()-$timeForCrossword . " sec wordNumber:$wordNumber , dir:$dir $popWord optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";}

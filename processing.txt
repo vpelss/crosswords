@@ -1,22 +1,22 @@
 
-Loops per Sec: 542.392857142857
-PRONETOxEoooo
-RERIDESxXoooo
-ECOCARSxPoooo
-SUUxxAETAxooo
-TTTTTTTTTxooo
-xxxTKOxTRoooo
-PRCLNxxxIoooo
-HAPPSSxoOoxxx
-oooxBUMSTEERS
-oooxRIVExxooo
-TAKETxooooooo
-ooooHxooooooo
-ooooWxooooooo
+Loops per Sec: 20.2363636363636
+BABOONSxMDLIX
+RAPTRIOxAoooo
+AAECRDYxRoooo
+GAExxGEoKxooo
+SANSSERIFxooo
+xxxDoTxoOoooo
+TOMSKxxxLoooo
+ASTEALxoEoxxx
+CSoxooooYoooo
+KEoxooooxxooo
+LToooxooooooo
+EEoooxooooooo
+SSoooxooooooo
 
-Time: 27
-Loops: 15187
-Sec per Loop: 0.00177783630736814
-Loops per Sec: 542.392857142857
+Time: 54
+Loops: 1113
+Sec per Loop: 0.0485175202156334
+Loops per Sec: 20.2363636363636
 
-optimalBacktrack: naiveBacktrack:15163 recursive calls:15187
+optimalBacktrack:501 naiveBacktrack:592 recursive calls:1113
