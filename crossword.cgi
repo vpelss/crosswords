@@ -150,6 +150,7 @@ my %wordNumberDirUsed; #$wordNumberDirUsed{$wordNumber}{$dir} so we only backtra
 my $naiveBacktrack; #a counter
 my $optimalBacktrack; #a counter
 my %touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+my %touchingLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
 my $oldTime;
 
 sub main {
@@ -283,7 +284,8 @@ if ( $in{mode} eq 'word' ) {
 else {
      if ( &RecursiveLetters() == 0 )
            {
-           $message = "\n\nFailed to fill grid Counts:$recursiveCount \n\n";
+           my $cnt = scalar keys %wordsThatAreInserted;
+           $message = "\n\nFailed to fill grid Counts:$recursiveCount Words layed:$cnt \n\n";
            print $message;
            PrintResults($message);
            &Quit();
@@ -1327,7 +1329,8 @@ while ($success == 0)
         #if we are here, the last recursive attempt to lay a word failed. So we are backtracking.
         #returning from last word which failed
 
-        $wordsThatAreInserted{$popWord} = 0; #allow us to reuse word
+        #$wordsThatAreInserted{$popWord} = 0; #allow us to reuse word
+        delete $wordsThatAreInserted{$popWord}; #allow us to reuse word
         #failed so reset word to previous mask
         &placeMaskOnBoard($wordNumber , $dir , $mask);
 
@@ -1360,7 +1363,6 @@ while ($success == 0)
 die('never get here'); #never get here
 }
 
-my %touchingLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
 sub RecursiveLetters()
 {
 #recursive try to lay down letters using @nextLetterPositionsOnBoard, will shift of, store and unshift if required
@@ -1466,15 +1468,19 @@ while ($success == 0)
         #if we are here, the last recursive attempt to lay a word failed. So we are backtracking.
         #returning from last letter which failed
 
-        $wordsThatAreInserted{$horizInsertedWord} = 0; #allow us to reuse word
-        $wordsThatAreInserted{$vertInsertedWord} = 0; #allow us to reuse word
+        #$wordsThatAreInserted{$horizInsertedWord} = undef; #allow us to reuse word
+        #$wordsThatAreInserted{$vertInsertedWord} = undef; #allow us to reuse word
+        #$wordsThatAreInserted{$horizMask} = undef; #allow us to reuse word
+        #$wordsThatAreInserted{$vertMask} = undef; #allow us to reuse word
+         delete $wordsThatAreInserted{$horizInsertedWord};
+         delete $wordsThatAreInserted{$vertInsertedWord};
 
         #failed so reset letter to unoccupied
         &SetXY($x,$y,$unoccupied);
 
         if ($in{optimalbacktrack} == 0)
              {
-             %touchingLettersForBackTrack =(); #stop optimal recursion?
+             %touchingLettersForBackTrack = (); #stop optimal recursion?
              }
 
         #optimal backtrack check and processing
@@ -1483,6 +1489,19 @@ while ($success == 0)
               #we are doing an optimal backtrack
               if ($touchingLettersForBackTrack{$x}{$y} == 1) {
                    #we have hit the optimal target. turn off optimal backtrack
+=pod
+                   my @rr = keys %touchingLettersForBackTrack;
+                   print "$x $y ppp @rr\n" ;
+                   foreach my $item (@rr) {
+                           #print "$item $touchingLettersForBackTrack{$item}, ";
+                           my @ss = keys %{$touchingLettersForBackTrack{$item}};
+                           #print "@rr|@ss\n";
+                           foreach my $item2 (@ss) {
+                                   print "{$item}{$item2}:$touchingLettersForBackTrack{$item}{$item2},";
+                                   }
+                           }
+                   print "\n\n";
+=cut
                    %touchingLettersForBackTrack = ();
                    }
               else {
@@ -2464,6 +2483,9 @@ sub GetTouchingLetters()
 my $x = $_[0];
 my $y = $_[1];
 
+%touchingLettersForBackTrack = (); #start clean
+undef %touchingLettersForBackTrack;
+
 $x = $x - 1;
 my $char = &GetXY($x,$y);
 if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $unoccupied) )
@@ -2478,6 +2500,7 @@ if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $
      {
      $touchingLettersForBackTrack{$x}{$y}=1;
      }
+$y = 0;
 }
 
 sub IsWordAlreadyUsed() {
@@ -2487,7 +2510,7 @@ sub IsWordAlreadyUsed() {
 my $mask = $_[0];
 my @nextLetters;
 
-while ($mask =~ /o/) { #see if we get single letters until end of word
+while ($mask =~ /o/g) { #see if we get single letters until end of word
         @nextLetters = &getNextPossibleLetters($mask);
         if (scalar(@nextLetters) > 1) #multiple words possible for mask.
             {
@@ -2498,8 +2521,9 @@ while ($mask =~ /o/) { #see if we get single letters until end of word
         }
 #only one word is possible for mask at this point
 #but has it been used?
-if ($wordsThatAreInserted{$mask} == 1)
-      {return 1;}
+if ($wordsThatAreInserted{$mask} == 1) {
+      return 1;
+      }
 else
       {return 0;}
 };
