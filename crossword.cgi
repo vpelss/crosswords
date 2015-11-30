@@ -175,7 +175,7 @@ $in{shuffle} = 1;
 $in{wordfile} = "Sympathy_31121";
 #$in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
-$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
+$in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
 
 #%in = &parse_form; #get input arguments. comment out for commandline running
 
@@ -1367,7 +1367,23 @@ sub RecursiveLetters()
 {
 #recursive try to lay down letters using @nextLetterPositionsOnBoard, will shift of, store and unshift if required
 #store locally the possible letters in  @possibleLetter
-#in just the next index in a list (@nextLetterPositionsOnBoard) of word position we are trying to fill
+#the next index in the list (@nextLetterPositionsOnBoard) is the next letter position we are trying to fill
+
+#recurse if we can't find possible letters (going forward) or run out of possible letters
+#next / loop if we can't lay a letter (word already used) and we have more possible letters to pick from
+#anytime we next / loop set to $unoccupied (just in case)
+#anytime we recurse back (can't lay a letter or run out) a square we must unshift @nextLetterPositionsOnBoard , {x => $x, y => $y}; and return 0
+#after we have returned from a failed letter down the road, set $unoccupied (to try another letter) and next / loop to see if there are anymore possible letters for this square
+
+#note optimal recursion will not work if upper letter is part of a horizontal word
+#the reason is that we may be bactracking due to a later letter in the upper horizontal word.
+#If we wipe that word out without trying ALL the cobinations in that upper word we may be missing possible words in the horizontal word we are working on now
+#an exception is if it is the last letter of a horizontal word
+#so: only optimal up if:
+     #1. the upper target letter it is not part of a horeizontal word
+     #2. the upper target letter is the last letter in a horizontal word
+     #3. the letter that failed is in a single vertical word
+8 what about parallel vert words?
 
 my @lettersThatFit;
 my $popLetter;
@@ -1400,6 +1416,7 @@ while ($success == 0)
         if (scalar @lettersThatFit == 0) #are there any possible words? If no backtrack
               {
               #fail to find a list of letters going forward or we are out of letters in a recursion so go back a letter
+              #&SetXY($x,$y,$unoccupied);
               unshift @nextLetterPositionsOnBoard , {x => $x, y => $y}; #always unshift our current position back on to @nextLetterPositionsOnBoard when we return!
 
               #optimal backtrack option. saves hundreds of naive backtracks!
@@ -1407,6 +1424,7 @@ while ($success == 0)
               if ($in{optimalbacktrack} == 1) {
                    &GetTouchingLetters($x,$y);
                    }
+              print "failed at $x,$y\n";
               return 0;
               }; #no letters so fail
 
@@ -1444,6 +1462,10 @@ while ($success == 0)
                  $horizInsertedWord = $horizMask; #so we can easily remove on failed recursions
                  $wordsThatAreInserted{$horizMask} = 1;
                  }
+            else {
+                  &SetXY($x,$y,$unoccupied);
+                  next ; #choose another word ie. pop
+                  }
             }
         #vert
         if (not $vertMask =~ /$unoccupied/) {
@@ -1451,6 +1473,10 @@ while ($success == 0)
                  $vertInsertedWord = $vertMask; #so we can easily remove on failed recursions
                  $wordsThatAreInserted{$vertMask} = 1;
                  }
+            else {
+                  &SetXY($x,$y,$unoccupied);
+                  next ; #choose another word ie. pop
+                  }
             }
 
         if (time() > $oldTime + 2) #print every 3 seconds
@@ -1508,9 +1534,11 @@ while ($success == 0)
                     #still in optimal backtrack so keep going back
                     unshift @nextLetterPositionsOnBoard , {x => $x, y => $y}; #always unshift our current position back on to @nextLetterPositionsOnBoard when we return!
                     $optimalBacktrack++;
+                    print "optimum skip at $x,$y\n";
                     return 0;
                     }
               }
+        print "landed at $x,$y\n\n";
         $naiveBacktrack++;
         next; #naive backtrack
         }
