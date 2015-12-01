@@ -1,5 +1,5 @@
-{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\froman\fprq2\fcharset0 Arial;}{\f1\froman\fprq2\fcharset0 Liberation Serif;}{\f2\fnil\fcharset0 Arial;}{\f3\froman\fprq2\fcharset0 Courier New;}}
-{\colortbl ;\red0\green0\blue255;\red255\green0\blue0;\red0\green0\blue0;}
+{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\froman\fprq2\fcharset0 Arial;}{\f1\froman\fprq2\fcharset0 Liberation Serif;}{\f2\fnil\fcharset0 Arial;}{\f3\fnil Courier New;}{\f4\froman\fprq2\fcharset0 Courier New;}}
+{\colortbl ;\red0\green0\blue255;\red255\green0\blue0;\red0\green0\blue0;\red0\green128\blue0;}
 {\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\nowidctlpar\hyphpar0\ri-1440\lang1033\kerning1\ul\b\f0\fs20 Crossword Generation Algorithm \endash  Word by Word\ulnone\b0\f1\fs24\par
 \par
 \f0\fs20 See: \lang255{\field{\*\fldinst{HYPERLINK "http://thesis.cambon.dk/"}}{\fldrslt{\ul\cf1 http://thesis.cambon.dk/}}}\lang1033\f0\fs20  for many of the concepts mentioned in this text.\f1\fs24\par
@@ -270,14 +270,15 @@ These walks must ensure that we are always builing both the horizontal and verti
 \cf3\f0\fs20\par
 These are tricky as the optimal backtrack is dependant on the walk we have choosen and the grid structures and pads arround the failed letter.\par
 \par
-After much thought I have simplified the many rules for choosing an optimized backtrack target to two simple rules that work with all walks and all grids. There are some rules that could be added that would make an optimized backtrack even faster, but I prefer to keep the algorith as simple as possible.\par
+After much thought I have simplified the many rules for choosing an optimized backtrack target to two simple rules that work with all walks and all grids. \par
 \par
 Since we could be using any walk (that allows us to lay words first letter to last letter):\par
 \par
 Rule:\par
 1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter\par
 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter \par
-\par
+\f2 3. \kerning0 Remove 'shadows' by only keeping the intersection of rule \cf4 1\cf3  and \cf4 2\f3\par
+\cf3\kerning1\f0\par
 Note that # 2 can seem non intuitive. But I asure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
 \par
 CAT\par
@@ -322,9 +323,9 @@ storage of dictionary as data files already? JSON?\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 fast efficient storage of database.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-\f3 Dynamic walk?\cf0\f1\fs24\par
+\f4 Dynamic walk?\cf0\f1\fs24\par
 \par
-\cf3\f3\fs20 puzzle space is immense.\cf0\f1\fs24\line\cf3\f3\fs20 puzzle solution is miniscule\cf0\f1\fs24\line\cf3\f3\fs20 therefore recursive \b and\b0  random attempts are unlikely to work well on their own\cf0\f1\fs24\line\par
+\cf3\f4\fs20 puzzle space is immense.\cf0\f1\fs24\line\cf3\f4\fs20 puzzle solution is miniscule\cf0\f1\fs24\line\cf3\f4\fs20 therefore recursive \b and\b0  random attempts are unlikely to work well on their own\cf0\f1\fs24\line\par
 \cf3\ul\f0\fs20 Questions\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
 Are dynamic walks possible without missing possibilities?\cf0\f1\fs24\par

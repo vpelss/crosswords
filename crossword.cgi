@@ -1156,6 +1156,7 @@ sub calculateOptimalBacktracks()
 #%touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
 #rule 1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter
 #rule 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter
+Remove shadows by only keeping the intersection of rule 1 and 2
 9 add rule 3 that stops adding shadow areas
 # $touchingLettersForBackTrack{x failed letter}{y failed letter}{x}{y} = 1 #pregenerated for speed!
 
