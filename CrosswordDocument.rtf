@@ -270,7 +270,7 @@ These walks must ensure that we are always builing both the horizontal and verti
 \cf3\f0\fs20\par
 These are tricky as the optimal backtrack is dependant on the walk we have choosen and the grid structures and pads arround the failed letter.\par
 \par
-After much thought I have simplified the many rules for choosing an optimized backtrack target to two simple rules that work with all walks and all grids.\par
+After much thought I have simplified the many rules for choosing an optimized backtrack target to two simple rules that work with all walks and all grids. There are some rules that could be added that would make an optimized backtrack even faster, but I prefer to keep the algorith as simple as possible.\par
 \par
 Since we could be using any walk (that allows us to lay words first letter to last letter):\par
 \par
@@ -278,7 +278,7 @@ Rule:\par
 1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter\par
 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter \par
 \par
-Note that # 3 can seem non intuitive. But I asure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
+Note that # 2 can seem non intuitive. But I asure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
 \par
 CAT\par
 ooo\par
