@@ -150,7 +150,11 @@ my %wordNumberDirUsed; #$wordNumberDirUsed{$wordNumber}{$dir} so we only backtra
 my $naiveBacktrack; #a counter
 my $optimalBacktrack; #a counter
 my %touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+#rule 1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter
+#rule 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter
+# $touchingLettersForBackTrack{x failed letter}{y failed letter}{x}{y} = 1 #pregenerated for speed!
 my %touchingLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+
 my $oldTime;
 
 sub main {
@@ -208,6 +212,13 @@ $message = $message . "Numbering grid...\n";
 &PrintProcessing($message);
 if ($debug ) {print time()-$timeForCrossword .  " sec Numbering grid...\n\n";}
 &numberBlankSquares();
+
+if ($in{optimalbacktrack}) {
+     $message = $message . "Calculating Optimal Backtracks...\n";
+     &PrintProcessing($message);
+     if ($debug ) {print time()-$timeForCrossword .  " sec Numbering grid...\n\n";}
+     &calculateOptimalBacktracks();
+     }
 
 $message = $message . "Loading word list...\n";
 &PrintProcessing($message);
@@ -1139,6 +1150,25 @@ foreach $wordLength (keys %wordLengths)
          }
 if ($debug ) {print "\nDensity:$density\% , Interlock:$interlock\% , Crossing:$crossingCells , White:$whiteCells , Total:$totalCells \n\n";}
 };
+
+sub calculateOptimalBacktracks()
+{
+#%touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+#rule 1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter
+#rule 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter
+# $touchingLettersForBackTrack{x failed letter}{y failed letter}{x}{y} = 1 #pregenerated for speed!
+
+if ($in{mode} eq 'letter') {
+
+     }
+
+if ($in{mode} eq 'word') {
+
+     }
+
+
+9 nbadfnhg
+}
 
 sub LoadWordList {
 my $filename = $_[0];

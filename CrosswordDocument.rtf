@@ -1,4 +1,4 @@
-{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\froman\fprq2\fcharset0 Arial;}{\f1\froman\fprq2\fcharset0 Liberation Serif;}{\f2\froman\fprq2\fcharset0 Courier New;}}
+{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\froman\fprq2\fcharset0 Arial;}{\f1\froman\fprq2\fcharset0 Liberation Serif;}{\f2\fnil\fcharset0 Arial;}{\f3\froman\fprq2\fcharset0 Courier New;}}
 {\colortbl ;\red0\green0\blue255;\red255\green0\blue0;\red0\green0\blue0;}
 {\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\nowidctlpar\hyphpar0\ri-1440\lang1033\kerning1\ul\b\f0\fs20 Crossword Generation Algorithm \endash  Word by Word\ulnone\b0\f1\fs24\par
 \par
@@ -239,7 +239,7 @@ Bigger databases make for quicker solving but much longer prep.\cf0\f1\fs24\par
 \cf3\f0\fs20 The 'Clues' data base allows for a 6x6 grid solve in 68 sec, but load and pre-processing time is 220 sec. A 6x6 is not solvable with the smaller databases.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 \par
-\ul Walks\ulnone  \cf0\f1\fs24\par
+\ul Walks for Word by Word\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
 \b Flat\b0 : Horizontal words. It seems to be the fastest in a fully connected square.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
@@ -262,22 +262,32 @@ walk\tab naive\tab optimal\tab time\tab calls\tab\tab optimal saves\cf0\f1\fs24\
 \cf3\f0\fs20 diag\tab\tab x\tab 129s\tab 445712\tab\tab 226531\tab\cf0\f1\fs24\par
 \cf3\f0\fs20 switch\tab\tab x\tab 31s\tab 125555\tab\tab 13182\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-\ul Optimum Backtrack : for letter by letter builds : No longer used\cf0\ulnone\f1\fs24\par
+\ul Walks for Letter by Letter\ulnone\par
+\par
+These walks must ensure that we are always builing both the horizontal and vertical words from the first letter to the last letter. \par
+\par
+\ul Optimum Backtrack : for letter by letter builds\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
-For letter searches our backtrack options are :either go to the previous horizontal cell or the vertical cell above. \cf0\f1\fs24\par
-\cf3\f0\fs20\par
-Note that both the horizontal and vertical pre words will have valid letters to contribute to the cell we are in. If that was not the case we would have backtracked at that point. Said another way: If there are pre words laid, that can only occur if there are possible letters to follow.\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-So we backtrack only if the \b combination\b0  of possible horizontal and vertical letters have no common letters, that is the only time a letter will not be possible in that cell. This is the case when we are moving forward and laying new letters.\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-If, however, we run into a cell that has no common horizontal or vertical letters, then we must backtrack. If, when we are backtracking, our list of potential letters for that cell is empty (as we have used them all on previous attempts) or there was only one letter possible, we must backtrack even further. Potentially there could be a long chain of such cells forcing us to backtrack a long way.\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-If we are mid way through laying a horizontal word and we cannot lay a letter, we \b must\b0  use a naive backtrack (go to the preceding horizontal cell) as changing it might allow us to lay a letter in that cell. If we cannot lay a letter in the first cell when laying a horizontal word, we can do an optimal backtrack to the vertical cell above. We can only do this while moving forward, not if we have backtracked from the 2nd letter in the horizontal word! If we do this, we loose all the combinations in the word above that may have allowed the failing letter further in the word to work. This prunes the search tree and we loose potential valid puzzle combinations.\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-In summary, there are 2 targets we can backtrack too, either the preceding horizontal or vertical cell. An optimal backtrack takes us to the first preceding horizontal or vertical cell we encounter in the backtrack. We can only optimal backtrack if we are moving forward, laying cells in the walk, never when backtracking from a cell. \cf0\f1\fs24\par
-\cf3\f0\fs20\par
-Logic: Only backtrack (optimal) to preceding horizontal or vertical cell (which ever you hit first) if you are moving forward. Otherwise, just backtrack once (naive).\cf0\f1\fs24\par
-\cf3\f0\fs20\par
+These are tricky as the optimal backtrack is dependant on the walk we have choosen and the grid structures and pads arround the failed letter.\par
+\par
+After much thought I have simplified the many rules for choosing an optimized backtrack target to two simple rules that work with all walks and all grids.\par
+\par
+Since we could be using any walk (that allows us to lay words first letter to last letter):\par
+\par
+Rule:\par
+1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter\par
+2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter \par
+\par
+Note that # 3 can seem non intuitive. But I asure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
+\par
+CAT\par
+ooo\par
+ooo\par
+\par
+So there is no optimal backtrack in a square crossword with no black squares as per rule 1 and 2 as all squares are optimal backtrack squares.\par
+\par
+\f2 So I am using a hash \kerning0 %touchingLettersForBackTrack\{x\}\{y\} that will equal 1 if for all squres that follow rule 1 and 2 for a squre where we cannot lay a letter or have run out of letters to try. So my optimized backtrack backtracks until it hits any of the squares in %touchingLettersForBackTrack\{x\}\{y\}.\par
+\kerning1\f0\par
 \ul Dictionary and Clues\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
 For huge word lists (required for big grids) our combined dictionary and clue database list is huge. It will crash our system by using all our RAM. As I wanted to use pure text databases, this posed a problem. My solution was to have a word only database (no clues) used to fill the grid. For the clues, I pre-generate a list of text files coresponding the word's clues. So  'jude.txt' would contain:\cf0\f1\fs24\par
@@ -312,9 +322,9 @@ storage of dictionary as data files already? JSON?\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 fast efficient storage of database.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-\f2 Dynamic walk?\cf0\f1\fs24\par
+\f3 Dynamic walk?\cf0\f1\fs24\par
 \par
-\cf3\f2\fs20 puzzle space is immense.\cf0\f1\fs24\line\cf3\f2\fs20 puzzle solution is miniscule\cf0\f1\fs24\line\cf3\f2\fs20 therefore recursive \b and\b0  random attempts are unlikely to work well on their own\cf0\f1\fs24\line\par
+\cf3\f3\fs20 puzzle space is immense.\cf0\f1\fs24\line\cf3\f3\fs20 puzzle solution is miniscule\cf0\f1\fs24\line\cf3\f3\fs20 therefore recursive \b and\b0  random attempts are unlikely to work well on their own\cf0\f1\fs24\line\par
 \cf3\ul\f0\fs20 Questions\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
 Are dynamic walks possible without missing possibilities?\cf0\f1\fs24\par
