@@ -296,6 +296,7 @@ if ( $in{mode} eq 'word' ) {
 else {
      if ( &RecursiveLetters() == 0 )
            {
+           #&show();
            my $cnt = scalar keys %wordsThatAreInserted;
            $message = "\n\nFailed to fill grid Counts:$recursiveCount Words layed:$cnt \n\n";
            print $message;
@@ -1186,9 +1187,29 @@ if ($in{mode} eq "letter") {
              }
       }
 
+&show();
 
 if ($in{mode} eq 'word') {
 
+     }
+}
+
+sub show()
+{
+for (my $x = 0 ; $x < $in{width} ; $x++) {
+     for (my $y = 0 ; $y < $in{height} ; $y++)  {
+          my @rr = keys %{$touchingLettersForBackTrack{$x}{$y}};
+          print "For: $x $y \n" ;
+          foreach my $item (@rr) {
+                  #print "$item $touchingLettersForBackTrack{$item}, ";
+                  my @ss = keys %{$touchingLettersForBackTrack{$x}{$y}{$item}};
+                  #print "@rr|@ss\n";
+                  foreach my $item2 (@ss) {
+                          print "\$touchingLettersForBackTrack{$x}{$y}{$item}{$item2} = $touchingLettersForBackTrack{$x}{$y}{$item}{$item2}\n";
+                          }
+                  }
+                  print "\n\n";
+          }
      }
 }
 
@@ -1488,6 +1509,7 @@ else {
 
 $recursiveCount++; #count forward moving calls
 
+if ($debug) {print "moving forward pos $x $y \n"};
 my $success = 0;
 while ($success == 0)
         {
@@ -1504,7 +1526,7 @@ while ($success == 0)
                    $letterBackTrackSource{x} = $x;
                    $letterBackTrackSource{y} = $y;
                    }
-              print "failed at $x,$y\n";
+              if ($debug) {print "out of letters at $x,$y new target source $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
               return 0;
               }; #no letters so fail
 
@@ -1590,31 +1612,17 @@ while ($success == 0)
              %letterBackTrackSource = ();
              }
 
+        if ($debug) {print "letterbacktrack source: x:$letterBackTrackSource{x} y:$letterBackTrackSource{y}\n"};
         #optimal backtrack check and processing
         #if (%touchingLettersForBackTrack != ())
         if (%letterBackTrackSource != ())
              {
               #we are doing an optimal backtrack
               #if ($touchingLettersForBackTrack{$x}{$y} == 1) {
-              my $rr = $letterBackTrackSource{x};
-              my $ss = $letterBackTrackSource{y};
-              my $aa = $touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y};
+              9 why sometimes = 0 
               print "\$touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} = $touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y}\n";
               if ($touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} > 1) {
                    #we have hit the optimal target. turn off optimal backtrack
-=pod
-                   my @rr = keys %touchingLettersForBackTrack;
-                   print "$x $y ppp @rr\n" ;
-                   foreach my $item (@rr) {
-                           #print "$item $touchingLettersForBackTrack{$item}, ";
-                           my @ss = keys %{$touchingLettersForBackTrack{$item}};
-                           #print "@rr|@ss\n";
-                           foreach my $item2 (@ss) {
-                                   print "{$item}{$item2}:$touchingLettersForBackTrack{$item}{$item2},";
-                                   }
-                           }
-                   print "\n\n";
-=cut
                    #%touchingLettersForBackTrack = ();
                    %letterBackTrackSource = ();
                    }
