@@ -1180,10 +1180,11 @@ if ($in{mode} eq "letter") {
                                 }
                         if ($debug) {print "\n\n"}
                         }
-                  #filter out shadows ($touchingLettersForBackTrack that only  = 1)
-
                   }
+
              }
+      #filter out shadows ($touchingLettersForBackTrack that only  = 1)
+
       }
 
 

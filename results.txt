@@ -1,4 +1,4 @@
 
 
-Failed to fill grid Counts:13767 Words layed:0 
+Failed to fill grid Counts:11 Words layed:0 
 
