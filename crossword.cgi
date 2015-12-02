@@ -137,7 +137,7 @@ my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
 my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
 
-eval { &main; };     # Trap any fatal errors so the program hopefully
+eval { &Main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
 exit;   # There are only two exit calls in the script, here and in in &cgierr.
 
@@ -157,7 +157,7 @@ my %touchingLettersForBackTrack; #global as we need to backtrack to the first  m
 
 my $oldTime;
 
-sub main {
+sub Main {
 my @temp;
 my $x;
 my $y;
@@ -183,7 +183,7 @@ $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
 
 #%in = &parse_form; #get input arguments. comment out for commandline running
 
-&process_arguments;
+&Process_arguments();
 
 $timeForCrossword = time();
 
@@ -282,7 +282,7 @@ if ($in{optimalbacktrack}) {
      $message = $message . "Calculating Optimal Backtracks...\n";
      &PrintProcessing($message);
      if ($debug ) {print time()-$timeForCrossword .  " sec Numbering grid...\n\n";}
-     &calculateOptimalBacktracks();
+     &CalculateOptimalBacktracks();
      }
 
 if ( $in{mode} eq 'word' ) {
@@ -487,7 +487,7 @@ print $processing "$string";
 #open($processing, ">processing.txt") or die "Can't open : $!";
 };
 
-sub process_arguments {
+sub Process_arguments {
 #process input arguments
 # Test inputs to see if they are valid and set defaults
 
@@ -1152,7 +1152,7 @@ foreach $wordLength (keys %wordLengths)
 if ($debug ) {print "\nDensity:$density\% , Interlock:$interlock\% , Crossing:$crossingCells , White:$whiteCells , Total:$totalCells \n\n";}
 };
 
-sub calculateOptimalBacktracks()
+sub CalculateOptimalBacktracks()
 {
 #%touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
 
@@ -1171,11 +1171,11 @@ if ($in{mode} eq "letter") {
                         #increase $touchingLettersForBackTrack for all letter positions in word
                         @wordLetterPositions = &MarkTouchingLettersForBackTrackFromWordLetterPositions($x,$y,$dir);
                         #increase $touchingLettersForBackTrack for all letter positions in crossing words
-                        if ($debug) {print "word letter positions "}
+                        if ($debug) {print "crossing\n "}
                         foreach my $letterPosition (@wordLetterPositions) {
                                 my $xx = $letterPosition->[0];
                                 my $yy = $letterPosition->[1];
-                                if ($debug) {print "$xx,$yy :"}
+                                if ($debug) {print "for word letter pos $xx $yy : "}
                                 &MarkTouchingLettersForBackTrackFromWordLetterPositions($xx,$yy,$OppositeDirection[$dir]);
                                 }
                         if ($debug) {print "\n\n"}
@@ -1206,12 +1206,12 @@ my $dir = shift @_;
 my $wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][$dir];
 my @wordLetterPositions = @{$letterPositionsOfWord[$wordNumber][$dir]};
 
-if ($debug) {print "crossing letter positions:"}
+if ($debug) {print "letter positions:"}
 foreach my $letterPosition (@wordLetterPositions) {
          my $xx = $letterPosition->[0];
          my $yy = $letterPosition->[1];
-         if ($debug ) {print "$xx,$yy :"}
          $touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}++; #add 1
+         if ($debug ) {print "\$touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}  = $touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}\n"}
          }
 if ($debug ) {print "\n"}
 return  @wordLetterPositions;
@@ -1596,7 +1596,11 @@ while ($success == 0)
              {
               #we are doing an optimal backtrack
               #if ($touchingLettersForBackTrack{$x}{$y} == 1) {
-              if ($touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y} == 1) {
+              my $rr = $letterBacktrackSource{x};
+              my $ss = $letterBacktrackSource{y};
+              my $aa = $touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y};
+              print "\$touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y} = $touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y}\n";
+              if ($touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y} > 1) {
                    #we have hit the optimal target. turn off optimal backtrack
 =pod
                    my @rr = keys %touchingLettersForBackTrack;
@@ -1611,7 +1615,8 @@ while ($success == 0)
                            }
                    print "\n\n";
 =cut
-                   %touchingLettersForBackTrack = ();
+                   #%touchingLettersForBackTrack = ();
+                   %letterBacktrackSource = ();
                    }
               else {
                     #still in optimal backtrack so keep going back
