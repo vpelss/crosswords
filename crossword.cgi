@@ -1440,7 +1440,7 @@ while ($success == 0)
 die('never get here'); #never get here
 }
 
-my %letterBacktrackSource; # $letterBacktrackSource{x} and  $letterBacktrackSource{y} if () then we are not looking for an optimal backtrack target
+my %letterBackTrackSource; # $letterBackTrackSource{x} and  $letterBackTrackSource{y} if () then we are not looking for an optimal backtrack target
 sub RecursiveLetters()
 {
 #recursive try to lay down letters using @nextLetterPositionsOnBoard, will shift of, store and unshift if required
@@ -1471,7 +1471,7 @@ my $horizInsertedWord; #for quick removal on failed recursions
 my $vertInsertedWord; #for quick removal on failed recursions
 
 #%touchingLettersForBackTrack = (); #clear global indicating that we are moving forward and have cleared the backtrack state
-%letterBacktrackSource = ();
+%letterBackTrackSource = ();
 
 if (scalar @nextLetterPositionsOnBoard == 0) {return 1}; #if we have filled all the possible letters, we are done. This breaks us out of all recursive  success loops
 
@@ -1501,8 +1501,8 @@ while ($success == 0)
               #get/set global touchingLetters and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
               if ($in{optimalbacktrack} == 1) {
                    #&GetTouchingLetters($x,$y);
-                   $letterBacktrackSource{x} = $x;
-                   $letterBacktrackSource{y} = $y;
+                   $letterBackTrackSource{x} = $x;
+                   $letterBackTrackSource{y} = $y;
                    }
               print "failed at $x,$y\n";
               return 0;
@@ -1587,20 +1587,20 @@ while ($success == 0)
         if ($in{optimalbacktrack} == 0)
              {
              #%touchingLettersForBackTrack = (); #stop optimal recursion?
-             %letterBacktrackSource = ();
+             %letterBackTrackSource = ();
              }
 
         #optimal backtrack check and processing
         #if (%touchingLettersForBackTrack != ())
-        if (%letterBacktrackSource != ())
+        if (%letterBackTrackSource != ())
              {
               #we are doing an optimal backtrack
               #if ($touchingLettersForBackTrack{$x}{$y} == 1) {
-              my $rr = $letterBacktrackSource{x};
-              my $ss = $letterBacktrackSource{y};
-              my $aa = $touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y};
-              print "\$touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y} = $touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y}\n";
-              if ($touchingLettersForBackTrack{$letterBacktrackSource{x}}{$letterBacktrackSource{y}}{$x}{$y} > 1) {
+              my $rr = $letterBackTrackSource{x};
+              my $ss = $letterBackTrackSource{y};
+              my $aa = $touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y};
+              print "\$touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} = $touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y}\n";
+              if ($touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} > 1) {
                    #we have hit the optimal target. turn off optimal backtrack
 =pod
                    my @rr = keys %touchingLettersForBackTrack;
@@ -1616,7 +1616,7 @@ while ($success == 0)
                    print "\n\n";
 =cut
                    #%touchingLettersForBackTrack = ();
-                   %letterBacktrackSource = ();
+                   %letterBackTrackSource = ();
                    }
               else {
                     #still in optimal backtrack so keep going back
