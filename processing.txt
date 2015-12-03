@@ -1,0 +1,22 @@
+
+Loops per Sec: 10050.9455445545
+LNGHRNSxGIOoo
+OASPREExAWooo
+FRUSTUMxSoooo
+ODSxxTUCoxooo
+USAUSAoooxooo
+xxxIFoxoooooo
+LHASoxxxooooo
+DIOoooxoooxxx
+MFoxooooooooo
+Cooxooooxxooo
+oooooxooooooo
+oooooxooooooo
+oooooxooooooo
+
+Time: 201
+Loops: 2030291
+Sec per Loop: 9.90005866154162e-005
+Loops per Sec: 10050.9455445545
+
+optimalBacktrack:414666 naiveBacktrack:1615573 recursive calls:2030291

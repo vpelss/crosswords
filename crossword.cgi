@@ -181,7 +181,7 @@ $in{wordfile} = "Sympathy_31121";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
 
-#%in = &parse_form; #get input arguments. comment out for commandline running
+%in = &parse_form; #get input arguments. comment out for commandline running
 
 &Process_arguments();
 
@@ -1163,8 +1163,6 @@ sub CalculateOptimalBacktracks()
 # $touchingLettersForBackTrack{x failed letter}{y failed letter}{x}{y} = 1 #pre-generated for speed!
 my ($x , $y , $xx , $yy , $dir , $letterPosition);
 
-9 creates holes
-
 my @wordLetterPositions;
 if ($in{mode} eq "letter") {
       for ($x = 0 ; $x < $in{width} ; $x++) {
@@ -1173,24 +1171,24 @@ if ($in{mode} eq "letter") {
                         if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
                         if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
                         #increase $touchingLettersForBackTrack for all letter positions in word
-                        @wordLetterPositions = &MarkTouchingLettersForBackTrackFromWordLetterPositions($x,$y,$dir);
+                        @wordLetterPositions = &MarkTouchingLettersForBackTrackFromWordLetterPositions($x,$y,$x,$y,$dir);
                         #increase $touchingLettersForBackTrack for all letter positions in crossing words
                         if ($debug) {print "crossing\n "}
                         foreach $letterPosition (@wordLetterPositions) {
                                 $xx = $letterPosition->[0];
                                 $yy = $letterPosition->[1];
                                 if ($debug) {print "for word letter pos $xx $yy : "}
-                                &MarkTouchingLettersForBackTrackFromWordLetterPositions($xx,$yy,$OppositeDirection[$dir]);
+                                &MarkTouchingLettersForBackTrackFromWordLetterPositions($x , $y , $xx,$yy,$OppositeDirection[$dir]);
                                 }
                         if ($debug) {print "\n\n"}
                         }
                   #filter out shadows ($touchingLettersForBackTrack that only  = 1)
-
+                  #or just compare for > 1 later in optimization routine
                   }
              }
       }
 
-&show();
+if ($debug) {&show()}
 
 if ($in{mode} eq 'word') {
 
@@ -1218,27 +1216,29 @@ for (my $x = 0 ; $x < $in{width} ; $x++) {
 
 sub MarkTouchingLettersForBackTrackFromWordLetterPositions()
 {
-#input start with $x,$y letter position and $dir
-#input is array of word letter positions [[x0,y0],[x1,y1],.....]
+#MarkTouchingLettersForBackTrackFromWordLetterPositions(x opt start , y opt start , x calc , y calc , dir calc)
+#input start with $x,$y for optimized start position and $x $y for calculation start position and letter position and $dir
 #increase value in global $touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}
 #return word letter positions [[x0,y0],[x1,y1],.....]
 
 my $x = shift @_;
 my $y = shift @_;
+my $xx = shift @_;
+my $yy = shift @_;
 my $dir = shift @_;
 
-my ($xx , $yy , $letterPosition);
+my ($xxx , $yyy , $letterPosition);
 
-my $wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][$dir];
+my $wordNumber = $ThisSquareBelongsToWordNumber[$xx][$yy][$dir];
 my @wordLetterPositions = @{$letterPositionsOfWord[$wordNumber][$dir]};
 
 if ($debug) {print "letter positions:\n
 "}
 foreach  $letterPosition (@wordLetterPositions) {
-         $xx = $letterPosition->[0];
-         $yy = $letterPosition->[1];
-         $touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}++; #add 1
-         if ($debug ) {print "\$touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}  = $touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}\n"}
+         $xxx = $letterPosition->[0];
+         $yyy = $letterPosition->[1];
+         $touchingLettersForBackTrack{$x}{$y}{$xxx}{$yyy}++; #add 1
+         if ($debug ) {print "\$touchingLettersForBackTrack{$x}{$y}{$xxx}{$yyy}  = $touchingLettersForBackTrack{$x}{$y}{$xxx}{$yyy}\n"}
          }
 if ($debug ) {print "\n"}
 return  @wordLetterPositions;
@@ -1534,10 +1534,7 @@ while ($success == 0)
                         $letterBackTrackSource{'y'} = $y;
                         print "Set \%letterBackTrackSource  $letterBackTrackSource{x} $letterBackTrackSource{y}\n";
                         }
-                   else {
-                         my $rrr = 'jjjj';
-                         }
-                   }
+                  }
               if ($debug) {print "out of letters at $x,$y new target source $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
               return 0;
               }; #no letters so fail
