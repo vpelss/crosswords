@@ -1161,11 +1161,14 @@ sub CalculateOptimalBacktracks()
 #rule 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter
 #rule 3 Remove shadows by only keeping the intersection of rule 1 and 2
 # $touchingLettersForBackTrack{x failed letter}{y failed letter}{x}{y} = 1 #pre-generated for speed!
+my ($x , $y , $xx , $yy , $dir , $letterPosition);
+
+9 creates holes
 
 my @wordLetterPositions;
 if ($in{mode} eq "letter") {
-      for (my $x = 0 ; $x < $in{width} ; $x++) {
-            for (my $y = 0 ; $y < $in{height} ; $y++)  {
+      for ($x = 0 ; $x < $in{width} ; $x++) {
+            for ($y = 0 ; $y < $in{height} ; $y++)  {
                   for ($dir = 0 ; $dir < 2 ; $dir++) {
                         if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
                         if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
@@ -1173,9 +1176,9 @@ if ($in{mode} eq "letter") {
                         @wordLetterPositions = &MarkTouchingLettersForBackTrackFromWordLetterPositions($x,$y,$dir);
                         #increase $touchingLettersForBackTrack for all letter positions in crossing words
                         if ($debug) {print "crossing\n "}
-                        foreach my $letterPosition (@wordLetterPositions) {
-                                my $xx = $letterPosition->[0];
-                                my $yy = $letterPosition->[1];
+                        foreach $letterPosition (@wordLetterPositions) {
+                                $xx = $letterPosition->[0];
+                                $yy = $letterPosition->[1];
                                 if ($debug) {print "for word letter pos $xx $yy : "}
                                 &MarkTouchingLettersForBackTrackFromWordLetterPositions($xx,$yy,$OppositeDirection[$dir]);
                                 }
@@ -1224,13 +1227,16 @@ my $x = shift @_;
 my $y = shift @_;
 my $dir = shift @_;
 
+my ($xx , $yy , $letterPosition);
+
 my $wordNumber = $ThisSquareBelongsToWordNumber[$x][$y][$dir];
 my @wordLetterPositions = @{$letterPositionsOfWord[$wordNumber][$dir]};
 
-if ($debug) {print "letter positions:"}
-foreach my $letterPosition (@wordLetterPositions) {
-         my $xx = $letterPosition->[0];
-         my $yy = $letterPosition->[1];
+if ($debug) {print "letter positions:\n
+"}
+foreach  $letterPosition (@wordLetterPositions) {
+         $xx = $letterPosition->[0];
+         $yy = $letterPosition->[1];
          $touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}++; #add 1
          if ($debug ) {print "\$touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}  = $touchingLettersForBackTrack{$x}{$y}{$xx}{$yy}\n"}
          }
@@ -1492,7 +1498,7 @@ my $horizInsertedWord; #for quick removal on failed recursions
 my $vertInsertedWord; #for quick removal on failed recursions
 
 #%touchingLettersForBackTrack = (); #clear global indicating that we are moving forward and have cleared the backtrack state
-%letterBackTrackSource = ();
+#%letterBackTrackSource = ();
 
 if (scalar @nextLetterPositionsOnBoard == 0) {return 1}; #if we have filled all the possible letters, we are done. This breaks us out of all recursive  success loops
 
@@ -1522,9 +1528,15 @@ while ($success == 0)
               #optimal backtrack option. saves hundreds of naive backtracks!
               #get/set global touchingLetters and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
               if ($in{optimalbacktrack} == 1) {
-                   #&GetTouchingLetters($x,$y);
-                   $letterBackTrackSource{x} = $x;
-                   $letterBackTrackSource{y} = $y;
+                   if (%letterBackTrackSource == ()) {
+                        #&GetTouchingLetters($x,$y);
+                        $letterBackTrackSource{'x'} = $x;
+                        $letterBackTrackSource{'y'} = $y;
+                        print "Set \%letterBackTrackSource  $letterBackTrackSource{x} $letterBackTrackSource{y}\n";
+                        }
+                   else {
+                         my $rrr = 'jjjj';
+                         }
                    }
               if ($debug) {print "out of letters at $x,$y new target source $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
               return 0;
@@ -1619,18 +1631,19 @@ while ($success == 0)
              {
               #we are doing an optimal backtrack
               #if ($touchingLettersForBackTrack{$x}{$y} == 1) {
-              9 why sometimes = 0 
-              print "\$touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} = $touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y}\n";
-              if ($touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} > 1) {
+              #9 why sometimes = 0
+              if ($debug) {print "\$touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} = $touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y}\n"}
+              if ($touchingLettersForBackTrack{$letterBackTrackSource{'x'}}{$letterBackTrackSource{'y'}}{$x}{$y} > 1) {
                    #we have hit the optimal target. turn off optimal backtrack
                    #%touchingLettersForBackTrack = ();
+                   if ($debug) {print "wipe \%letterBackTrackSource\n"}
                    %letterBackTrackSource = ();
                    }
               else {
                     #still in optimal backtrack so keep going back
                     unshift @nextLetterPositionsOnBoard , {x => $x, y => $y}; #always unshift our current position back on to @nextLetterPositionsOnBoard when we return!
                     $optimalBacktrack++;
-                    print "optimum skip at $x,$y\n";
+                    if ($debug) {print "optimum skip at $x,$y\n"}
                     return 0;
                     }
               }
