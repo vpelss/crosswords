@@ -159,6 +159,11 @@ my %touchingLettersForBackTrack; #global as we need to backtrack to the first  m
 my $oldTime;
 
 sub Main {
+my @temp;
+my $x;
+my $y;
+my @vert;
+my @horiz;
 
 $game = time; #this will determine the folder
 $uid = $in{uid}; #facebook user ID number
@@ -169,15 +174,15 @@ srand;
 $in{TimeLimit} = 1;
 $in{layouts} = 'grids';
 $in{grid} = 'BigOne';
-#$in{grid} = '5x5';
+$in{grid} = '5x5';
 $in{grid} = "13x13_22_112";
-$in{optimalbacktrack} = 1;
+$in{optimalbacktrack} = 0;
 $in{shuffle} = 1;
 $in{wordfile} = "Sympathy_31121";
 $in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
-$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
+#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
 
 #%in = &parse_form; #get input arguments. comment out for commandline running
 
@@ -1515,8 +1520,7 @@ else {
 
 $recursiveCount++; #count forward moving calls
 
-if ($debug) {print "we are moving forward and working on pos $x $y , letters that fit: @lettersThatFit  \n"};
-
+if ($debug) {print "moving forward pos $x $y \n"};
 my $success = 0;
 while ($success == 0)
         {
@@ -1533,17 +1537,16 @@ while ($success == 0)
                         #&GetTouchingLetters($x,$y);
                         $letterBackTrackSource{'x'} = $x;
                         $letterBackTrackSource{'y'} = $y;
-                        if ($debug) {print "optimum set \%letterBackTrackSource  $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
+                        if ($debug) {print "Set \%letterBackTrackSource  $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
                         }
                   }
-              if ($debug) {print "out of letters at $x,$y  \n"}
+              if ($debug) {print "out of letters at $x,$y new target source $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
               return 0;
               }; #no letters so fail
 
         #try the next word that fit in this location
         $popLetter = pop @lettersThatFit;
         &SetXY($x,$y,$popLetter); #lay letter so we can test masks below
-        if ($debug) {print "laying $popLetter at $x,$y\n"}
 
         #see if horizontal and vertical word is already selected. If so, fail + backtrack
         #horiz
@@ -1552,7 +1555,6 @@ while ($success == 0)
              $horizMask = $allMasksOnBoard[$wordNumber][0];
              if ( &IsWordAlreadyUsed($horizMask) ) { #this word is already used. fail
                    &SetXY($x,$y,$unoccupied);
-                   if ($debug) {print "horiz mask exists at $x,$y\n"}
                    next ; #choose another word ie. pop
                    }
              }
@@ -1562,7 +1564,6 @@ while ($success == 0)
              $vertMask = $allMasksOnBoard[$wordNumber][1];
              if ( &IsWordAlreadyUsed($vertMask) ) { #this word is already used. fail
                    &SetXY($x,$y,$unoccupied);
-                   if ($debug) {print "vert mask exists at $x,$y\n"}
                    next ; #choose another word ie. pop
                    }
              }
@@ -1572,33 +1573,27 @@ while ($success == 0)
         #check to see if horiz and vert mask are full words. if so then mark word as used
         #how will we unmark?
         #horiz
-        if ($horizMask != ()) { #is there a horiz mask?
-             if (not $horizMask =~ /$unoccupied/) {
-                 if ($wordsThatAreInserted{$horizMask} == 0) {#word not used set as used
-                      $horizInsertedWord = $horizMask; #so we can easily remove on failed recursions
-                      $wordsThatAreInserted{$horizMask} = 1;
-                      }
-                 else { #this word is already used. fail
-                         &SetXY($x,$y,$unoccupied);
-                         if ($debug) {print "horiz word exists at $x,$y\n"}
-                         next ; #choose another word ie. pop
-                         }
+        if (not $horizMask =~ /$unoccupied/) {
+            if ($wordsThatAreInserted{$horizMask} == 0) { #this word is already used. fail
+                 $horizInsertedWord = $horizMask; #so we can easily remove on failed recursions
+                 $wordsThatAreInserted{$horizMask} = 1;
                  }
+            else {
+                  &SetXY($x,$y,$unoccupied);
+                  next ; #choose another word ie. pop
+                  }
             }
         #vert
-        if ($vertMask != ()) { #is there a vert mask?
-             if (not $vertMask =~ /$unoccupied/) {  #word not used set as used
-                 if ($wordsThatAreInserted{$vertMask} == 0) { #this word is already used. fail
-                      $vertInsertedWord = $vertMask; #so we can easily remove on failed recursions
-                      $wordsThatAreInserted{$vertMask} = 1;
-                      }
-                 else { #this word is already used. fail
-                         &SetXY($x,$y,$unoccupied);
-                         if ($debug) {print "vert word exists at $x,$y\n"}
-                         next ; #choose another word ie. pop
-                         }
+        if (not $vertMask =~ /$unoccupied/) {
+            if ($wordsThatAreInserted{$vertMask} == 0) { #this word is already used. fail
+                 $vertInsertedWord = $vertMask; #so we can easily remove on failed recursions
+                 $wordsThatAreInserted{$vertMask} = 1;
                  }
-             }
+            else {
+                  &SetXY($x,$y,$unoccupied);
+                  next ; #choose another word ie. pop
+                  }
+            }
 
         if (time() > $oldTime + 2) #print every 3 seconds
               {
@@ -2605,15 +2600,12 @@ if ($wordNumber > 0) { #there is a horiz mask
 
 if (($isHorizWord) and ($isVertWord)) { #there is a horiz and vert word at this cell. find inersection of possible letters
      @lettersThatFit = intersection(\@lettersHoriz , \@lettersVert);
-     if ($debug) {print "Horiz and Vert letters @lettersThatFit found at $x $y\n"}
      return @lettersThatFit;
      }
 if ((not $isHorizWord) and ($isVertWord)) { #there is only a vertical word at this cell
-     if ($debug) {print "Vert letters @lettersVert found at $x $y\n"}
      return @lettersVert;
      }
 if (($isHorizWord) and (not $isVertWord)) { #there is only a horizontal word at this cell
-      if ($debug) {print "Horiz letters @lettersHoriz found at $x $y\n"}
      return @lettersHoriz;
      }
 die('should not get to end of letterPossibleAt()');

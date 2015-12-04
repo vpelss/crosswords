@@ -1,1 +1,4 @@
- Wait for it! 
+
+
+Failed to fill grid Counts:96357 Words layed:0 
+

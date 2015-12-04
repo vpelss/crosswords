@@ -177,7 +177,7 @@ $in{wordfile} = "Sympathy_31121";
 $in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
-$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
+#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
 
 #%in = &parse_form; #get input arguments. comment out for commandline running
 
