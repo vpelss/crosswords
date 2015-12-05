@@ -10,19 +10,12 @@
 
 #separate experimental options on front page
 
-#letter search fails on some databases....
-#error in optimal letter!
-#return %touchingLetters; maybe return \%touchingLetters;
-#missing branches of search tree.
-#copy hash {}{} is it correct???? error!!!!!
 
-# same error with %touchingWordsForBackTrack   ?????
+#on optimal, what if there is no upper or left letter (no optimal target)?  cancel optimal!
+#or no touchong words in optimal list that we have laid yet
 
-#on optimal, what if there is no upper or left letter? cancel optimal! or no touchong words in optimal list tat we have laid yet
-
-#  not that only touching words or letters that are full (have been visited already!) really afect this
-# so use a hash of $wordNumberDirUsed{$wordNumber}{$dir} = 1 or undef
-# so use a hash of $letterXYUsed{$x}{$x} = 1 or undef
+#shadow (> 1) does not work if letter only belongs to a horiz or vert word
+#also fails on british
 
 #global optimal list (not really a list, but a single target!  If empty then naive) precalculated?
 #maybe not as walk may depend on return.... but if we calculate it after the walk, maybe
@@ -135,7 +128,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &Main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -171,7 +164,7 @@ $in{layouts} = 'grids';
 $in{grid} = 'BigOne';
 #$in{grid} = '5x5';
 $in{grid} = "13x13_22_112";
-$in{optimalbacktrack} = 0;
+$in{optimalbacktrack} = 1;
 $in{shuffle} = 1;
 $in{wordfile} = "Sympathy_31121";
 $in{wordfile} = "Clues_248505";
@@ -1604,6 +1597,7 @@ while ($success == 0)
               {
               if ($debug) {print time()-$timeForCrossword . " sec wordNumber:$wordNumber , dir:$dir $popLetter optimalBacktrack:$optimalBacktrack naiveBacktrack:$naiveBacktrack recursive calls:$recursiveCount\n";}
               else {print '.';} # otherwise apache timeout directive limit is reached
+              #print '.';
               &PrintProcessing();
               $oldTime = time();
               }
@@ -1639,7 +1633,8 @@ while ($success == 0)
               #we are doing an optimal backtrack
               #if ($touchingLettersForBackTrack{$x}{$y} == 1) {
               if ($debug) {print "\$touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y} = $touchingLettersForBackTrack{$letterBackTrackSource{x}}{$letterBackTrackSource{y}}{$x}{$y}\n"}
-              if ($touchingLettersForBackTrack{$letterBackTrackSource{'x'}}{$letterBackTrackSource{'y'}}{$x}{$y} > 1) { #if it is equal to one, it is in a 'shaddow' and does not affect the failed letter
+              #note that set to > 0 (no shadows as british style (odd not even) does not work with > 1 (shadows)
+              if ($touchingLettersForBackTrack{$letterBackTrackSource{'x'}}{$letterBackTrackSource{'y'}}{$x}{$y} > 0) { #if it is equal to one, it is in a 'shaddow' and does not affect the failed letter
                    #we have hit the optimal target. turn off optimal backtrack
                    #%touchingLettersForBackTrack = ();
                    if ($debug) {print "wipe \%letterBackTrackSource\n"}
