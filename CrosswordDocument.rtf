@@ -13,7 +13,7 @@ PERL is ubiquitous. PERL is elegant. I just like PERL.\f1\fs24\par
 \ul Some things I have learned\ulnone\f1\fs24\par
 \f0\fs20\par
 1. The bigger the database the better.\f1\fs24\par
-\f0\fs20 2. Letter searches are not the answer as there are too many combinations and for each lay of a letter you only check for two words of the common letter. So even with a fast calculation time for each letter, all the recursion adds up. Laying a word and checking that all the crossing words will have a possible word, although much slower, has fewer recursive calls. On most test scenarios I had tried, laying words was faster. Another benefit of laying words is that a single random word replacement searches the puzzle space quicker. For example, when laying the first letter, if that letter will never result in a valid puzzle, we may not know untill thousands of recursions have passed. We discover mistakes faster by laying whole words.\f1\fs24\par
+\f0\fs20 2. Letter searches are not the answer as there are too many combinations and for each lay of a letter you only check for two words of the common letter. So even with a fast calculation time for each letter, all the recursion adds up. Laying a word and checking that all the crossing words will have a possible word, although much slower, has fewer recursive calls. On most test scenarios I had tried, laying words was faster. Another benefit of laying words is that a single random word replacement searches the puzzle space quicker. For example, when laying the first letter, if that letter will never result in a valid puzzle, we may not know until thousands of recursions have passed. We discover mistakes faster by laying whole words.\f1\fs24\par
 \f0\fs20 3. Each time you lay a word, you must ensure that all it's crossing word positions will be able to fit a word. If not, you will preform too many recursions. The code is more complex, but it is worth it.\f1\fs24\par
 \f0\fs20 4. Your path algorithm for laying words must ensure that each following word in your path crosses the previous one. This helps with wasted recursions in the case of doing all across words, then checking if the down words are valid.\f1\fs24\par
 \f0\fs20 5. Optimal (not naive) backtracks help a lot (x100 speed increases or more in some cases).\f1\fs24\par
@@ -36,8 +36,8 @@ Searches\ulnone\f1\fs24\par
 \f0\fs20\par
 There are many types of searches we can perform to try and determine what word or letter will fit on our crossword.\f1\fs24\par
 \f0\fs20\par
-\b Prefix / Linear Seraches : Return the next potential letters after a given series of letters\b0\f1\fs24\par
-\b\f0\fs20 Note: This was for a letter by letter search and is no longer used.\b0\f1\fs24\par
+\b Prefix / Linear Searches : Return the next potential letters after a given series of letters\b0\f1\fs24\par
+\b\f0\fs20 Note: This  is for a letter by letter search.\b0\f1\fs24\par
 \f0\fs20\par
 Given the prefix letters for a word, return the next possible letters.\f1\fs24\par
 \f0\fs20 eg: given 'boa--' found in the space for a 5 letter word, the next letter might be t or r.\f1\fs24\par
@@ -80,7 +80,7 @@ A routine that takes a list of possible letters (based on all the crossing word 
 \cf3\f0\fs20 It's output is a list of words that can be made with said letters.\cf0\f1\fs24\par
 \cf3\f0\fs20 @words = &WordsFromLetterLists(['C','D','F','T','Z'] , ['E','R','T','Y','O'] , ['T','R','E','W','Q','Z']);\cf0\f1\fs24\par
 \cf3\f0\fs20 Used if we check all possible letters at the same word position of crossing words. Then we can find the possible perpendicular words that are possible for this spot\cf0\f1\fs24\par
-\cf3\f0\fs20 Obviously it takes a lot of processing time as we are searching multiple lists of words for words common to all the lists.\cf0\f1\fs24\par
+\cf3\f0\fs20 Obviously it takes a lot of processing time. We must first search for possible letters in our word for all the crossing words.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 ----o---\cf0\f1\fs24\par
 \cf3\f0\fs20 ----o---\cf0\f1\fs24\par
@@ -94,11 +94,11 @@ Note: It really shines if your walking/search path ensures that each following w
 \cf3\f0\fs20\par
 By adding an optimum backtrack check and routine for this search, I have improved the generation time by a factor of 2500 times or more in "some" cases. If a word attempt fails, I make a list of the crossing word positions and the adjacent words positions (above,below or left/right). Those are the words that influence the word positions that failed. Then I backtrack until I hit one of the word positions in that list. You must stop on the first one encountered or you risk loosing possible puzzle solutions.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-Grids that do not seem to benifit are the Double Word Grids with 100% interlock.\cf0\f1\fs24\par
+Grids that do not seem to benefit are the Double Word Grids with 100% interlock.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 eg:\cf0\f1\fs24\par
 \cf3\f0\fs20 Letter Search - letter by letter routine : 0.00006 sec per call\cf0\f1\fs24\par
-\cf3\f0\fs20 Word Searck Mask: 0.0002 sec per call\cf0\f1\fs24\par
+\cf3\f0\fs20 Word Search Mask: 0.0002 sec per call\cf0\f1\fs24\par
 \cf3\f0\fs20 Word Search Meta : 0.05 sec per call\cf0\f1\fs24\par
 \cf3\f0\fs20 Word Search Meta with optimum backtrack: 0.09 sec per call\cf0\f1\fs24\par
 \cf3\f0\fs20\par
@@ -141,7 +141,7 @@ How are words and letters are stored on board? One is word centric and one is le
 \cf3\f0\fs20\par
 \b @LetterPositionsOfWord\cf0\b0\f1\fs24\par
 \cf3\f0\fs20 $LetterPositions[word #][dir] an array of all the word letter positions [[x,y],[x,y]....]\cf0\f1\fs24\par
-\cf3\f0\fs20 $LetterPositions[$numberCount][$Dir] = [@TempLetterPositions]; #an annonomyous array reference of $x,$y pairs of all letters in the word\cf0\f1\fs24\par
+\cf3\f0\fs20 $LetterPositions[$numberCount][$Dir] = [@TempLetterPositions]; #an anonymous array reference of $x,$y pairs of all letters in the word\cf0\f1\fs24\par
 \cf3\f0\fs20 @WordLetterPositions = @\{$LetterPositions[$wordNumber][$Dir]\}\cf0\f1\fs24\par
 \cf3\f0\fs20 Can be used to find all crossing words fast with @ThisSquareBelongsTowordNumber and using the other $dir\cf0\f1\fs24\par
 \cf3\f0\fs20\par
@@ -251,11 +251,11 @@ Bigger databases make for quicker solving but much longer prep.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 \ul Walks for Letter by Letter\ulnone\par
 \par
-These walks must ensure that we are always builing both the horizontal and vertical words from the first letter to the last letter. \par
+These walks must ensure that we are always building both the horizontal and vertical words from the first letter to the last letter. \par
 \par
 \ul Optimum Backtrack : for letter by letter builds\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
-These are tricky as the optimal backtrack is dependant on the walk we have choosen and the grid structures and pads arround the failed letter.\par
+These are tricky as the optimal backtrack is dependant on the walk we have chosen and the grid structures and pads around the failed letter.\par
 \par
 After much thought I have simplified the many rules for choosing an optimized backtrack target to two simple rules that work with all walks and all grids. \par
 \par
@@ -266,9 +266,9 @@ Rule:\par
 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter \par
 \f2 3. \kerning0 Remove 'shadows' by only keeping the intersection of rule \cf4 1\cf3  and \cf4 2\f3\par
 \cf3\kerning1\f0\par
-Note that # 2 can seem non intuitive. But I asure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
+Note that # 2 can seem non intuitive. But I assure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
 \par
-Rule 3 also breaks certain grid backtracks, most notably British style crosswords. So I feel if we leave rule 3 out, the extra optimum backtacks we might miss are worth it to keep our optimum target rules simple. \par
+Rule 3 also breaks certain grid backtracks, most notably British style crosswords. So I feel if we leave rule 3 out, the extra optimum back tracks we might miss are worth it to keep our optimum target rules simple. \par
 \par
 CAT\par
 ooo\par
@@ -276,7 +276,7 @@ ooo\par
 \par
 So there is no optimal backtrack in a square crossword with no black squares as per rule 1 and 2 as all squares are optimal backtrack squares.\par
 \par
-\f2 So I am using a hash \kerning0 %targetLettersForBackTrack\{x\}\{y\} that will equal 1 if for all squres that follow rule 1 and 2 for a squre where we cannot lay a letter or have run out of letters to try. So my optimized backtrack backtracks until it hits any of the squares in %targetLettersForBackTrack\{x\}\{y\}.\par
+\f2 So I am using a hash \kerning0 %targetLettersForBackTrack\{x\}\{y\} that will equal 1 if for all squares that follow rule 1 and 2 for a square where we cannot lay a letter or have run out of letters to try. So my optimized backtrack backtracks until it hits any of the squares in %targetLettersForBackTrack\{x\}\{y\}.\par
 \kerning1\f0\par
 \ul Dictionary and Clues\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
