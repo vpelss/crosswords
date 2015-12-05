@@ -11,7 +11,7 @@
 #separate experimental options on front page
 
 
-#on optimal, what if there is no upper or left letter (no optimal target)?  cancel optimal!
+#!!!!!!!!!!!!!!!!on optimal, what if there is no upper or left letter (no optimal target)?  cancel optimal!
 #or no touchong words in optimal list that we have laid yet
 
 #shadow (> 1) does not work if letter only belongs to a horiz or vert word
@@ -143,10 +143,12 @@ my %wordNumberDirUsed; #$wordNumberDirUsed{$wordNumber}{$dir} so we only backtra
 my $naiveBacktrack; #a counter
 my $optimalBacktrack; #a counter
 my %touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+
 #rule 1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter
 #rule 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter
 #rule 3 Remove shadows by only keeping the intersection of rule 1 and 2
-# $touchingLettersForBackTrack{x failed letter}{y failed letter}{x}{y} > 2 #pregenerated for speed!
+#rule 3 is ignored (> 1) and is nor (> 0) as it fails (over prunes) on British style crosswords
+# eg: $touchingLettersForBackTrack{x failed letter}{y failed letter}{x}{y} > 0 #pregenerated for speed!
 my %touchingLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
 
 my $oldTime;
@@ -188,7 +190,7 @@ if ($in{layouts} eq 'grids')
 
 if ($in{layouts} eq 'doublespaced')
      {
-     print "full $in{doublespacedfull} evenodd $in{evenodd}\n\n";
+     if ($debug) {print "full $in{doublespacedfull} evenodd $in{evenodd}\n\n"}
      if ($in{doublespacedfull})
           {
           &GenerateGridDoubleSpaced($in{doublespacedwidth},$in{evenodd});
@@ -745,7 +747,7 @@ for (my $y = 0 ; $y < $width ; $y++)
 
 my %breadCrumbs;
 sub GenerateGridDoubleSpaced2()
-{
+{#random british grid generator
 #fill with whitespace and pads then add pads one at a time. If pad separates any area, undo and try again.
 #fill all joining squares with breadcrumbs using recursion. If all surrounding whitespace has a breadcrumb then there are no islads of white
 #if words nsew are > 2 try again

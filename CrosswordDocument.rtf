@@ -281,6 +281,8 @@ Rule:\par
 \cf3\kerning1\f0\par
 Note that # 2 can seem non intuitive. But I asure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
 \par
+Rule 3 also breaks certain grid backtracks, most notably British style crosswords. So I feel if we leave rule 3 out, the extra optimum backtacks we might miss are worth it to keep our optimum target rules simple. \par
+\par
 CAT\par
 ooo\par
 ooo\par
