@@ -1,4 +1,4 @@
-{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\froman\fprq2\fcharset0 Arial;}{\f1\froman\fprq2\fcharset0 Liberation Serif;}{\f2\fnil\fcharset0 Arial;}{\f3\fnil Courier New;}{\f4\froman\fprq2\fcharset0 Courier New;}}
+{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\froman\fprq2\fcharset0 Arial;}{\f1\froman\fprq2\fcharset0 Liberation Serif;}{\f2\fnil\fcharset0 Arial;}{\f3\fnil Courier New;}}
 {\colortbl ;\red0\green0\blue255;\red255\green0\blue0;\red0\green0\blue0;\red0\green128\blue0;}
 {\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\nowidctlpar\hyphpar0\ri-1440\lang1033\kerning1\ul\b\f0\fs20 Crossword Generation Algorithm \endash  Word by Word\ulnone\b0\f1\fs24\par
 \par
@@ -249,19 +249,6 @@ Bigger databases make for quicker solving but much longer prep.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 \b My Cross Walk:\b0  I generated my own walk that beats the pants off the basic ones when using recursive word search algorithms that lay a word based on all the possible crossing words for that word's position.  I start with the very first word in the top right (although any start position could be used). Then I add all the crossing words to this starting word. Then I find and add all the crossing words to those words, etc. I only add a word once. This tends to backtrack very efficiently even with naive backtracking.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-\b Comparisons\cf0\b0\f1\fs24\par
-\cf3\f0\fs20\par
-letter by letter fill\cf0\f1\fs24\par
-\cf3\f0\fs20 grid 6 x 6 \cf0\f1\fs24\par
-\cf3\f0\fs20\par
-walk\tab naive\tab optimal\tab time\tab calls\tab\tab optimal saves\cf0\f1\fs24\par
-\cf3\f0\fs20 flat\tab x\tab\tab 24s\tab 104366\tab\tab 0\cf0\f1\fs24\par
-\cf3\f0\fs20 diag\tab x\tab\tab 182s\tab 644016\tab\tab 0\cf0\f1\fs24\par
-\cf3\f0\fs20 switch\tab x\tab\tab 31s\tab 131432\tab\tab 0\cf0\f1\fs24\par
-\cf3\f0\fs20 flat\tab\tab x\tab 23s\tab 104266\tab\tab 128\cf0\f1\fs24\par
-\cf3\f0\fs20 diag\tab\tab x\tab 129s\tab 445712\tab\tab 226531\tab\cf0\f1\fs24\par
-\cf3\f0\fs20 switch\tab\tab x\tab 31s\tab 125555\tab\tab 13182\cf0\f1\fs24\par
-\cf3\f0\fs20\par
 \ul Walks for Letter by Letter\ulnone\par
 \par
 These walks must ensure that we are always builing both the horizontal and vertical words from the first letter to the last letter. \par
@@ -289,7 +276,7 @@ ooo\par
 \par
 So there is no optimal backtrack in a square crossword with no black squares as per rule 1 and 2 as all squares are optimal backtrack squares.\par
 \par
-\f2 So I am using a hash \kerning0 %touchingLettersForBackTrack\{x\}\{y\} that will equal 1 if for all squres that follow rule 1 and 2 for a squre where we cannot lay a letter or have run out of letters to try. So my optimized backtrack backtracks until it hits any of the squares in %touchingLettersForBackTrack\{x\}\{y\}.\par
+\f2 So I am using a hash \kerning0 %targetLettersForBackTrack\{x\}\{y\} that will equal 1 if for all squres that follow rule 1 and 2 for a squre where we cannot lay a letter or have run out of letters to try. So my optimized backtrack backtracks until it hits any of the squares in %targetLettersForBackTrack\{x\}\{y\}.\par
 \kerning1\f0\par
 \ul Dictionary and Clues\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
@@ -302,7 +289,7 @@ For huge word lists (required for big grids) our combined dictionary and clue da
 \cf3\f0\fs20\par
 However this causes disk space concerns as there are 250,000 tiny files that take up gigs of disk space. Now it is difficult to upload to the server due to the number of individual files!\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-What I did to fix the disk issue, was to create clue text files based on the words first two letters. This takes 250,000 files and converts them into 650. It takes a little longer to load the clues, but it is not noticeable.\cf0\f1\fs24\par
+What I did to fix the disk issue, was to create clue text files based on the words first two letters. This takes 250,000 files and converts them into 650 files. It takes a little longer to load the clues, but it is not noticeable.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 I also broke the single, large word database up into separate databases based on word size. I only load the word databases that are required for the puzzle.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
@@ -316,18 +303,11 @@ Based on the section on Double Word Squares at: \cf0\lang255{\field{\*\fldinst{H
 \cf3\f0\fs20\par
 focus on an efficient walk generator for \b any\b0  puzzle grid\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-reference dictionary by integer so we can compare lists of integers instead of lists of word strings. will this save memory or time?\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-\par
 backtrack and walk in their own routines? Maybe the overhead will slow it down.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
-storage of dictionary as data files already? JSON?\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-fast efficient storage of database.\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-\f4 Dynamic walk?\cf0\f1\fs24\par
+\f2 Dynamic walk?\cf0\fs24\par
 \par
-\cf3\f4\fs20 puzzle space is immense.\cf0\f1\fs24\line\cf3\f4\fs20 puzzle solution is miniscule\cf0\f1\fs24\line\cf3\f4\fs20 therefore recursive \b and\b0  random attempts are unlikely to work well on their own\cf0\f1\fs24\line\par
+\cf3\fs20 puzzle space is immense.\cf0\fs24\line\cf3\fs20 puzzle solution is miniscule\cf0\fs24\line\cf3\fs20 therefore simple recursive \b and\b0  random attempts are unlikely to work well on their own\cf0\fs24\line\f1\par
 \cf3\ul\f0\fs20 Questions\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
 Are dynamic walks possible without missing possibilities?\cf0\f1\fs24\par
