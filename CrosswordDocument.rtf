@@ -262,13 +262,15 @@ After much thought I have simplified the many rules for choosing an optimized ba
 Since we could be using any walk (that allows us to lay words first letter to last letter):\par
 \par
 Rule:\par
-1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter\par
-2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter \par
+1. All letters in the horizontal and vertical words (up to the failed letter) can effect the failure of laying a letter, so mark it as an optimal backtrack target\par
+2. All crossing words of both the horizontal and vertical words of the failed letter can effect the failure of laying a letter, so mark it as an optimal backtrack target\par
 \f2 3. \kerning0 Remove 'shadows' by only keeping the intersection of rule \cf4 1\cf3  and \cf4 2\f3\par
 \cf3\kerning1\f0\par
 Note that # 2 can seem non intuitive. But I assure you they can. If we backtracked from the center letter (see below) and we are out of letters to lay at the 2nd row 1st column, we cannot go directly to C and try another letter. If we do, we miss words like CAR that might allow another solution in the second row that would be missed. \par
 \par
-Rule 3 also breaks certain grid backtracks, most notably British style crosswords. So I feel if we leave rule 3 out, the extra optimum back tracks we might miss are worth it to keep our optimum target rules simple. \par
+Rule 3 also breaks certain grid backtracks, most notably British style crosswords. The reason is that since we are double spaced, there many shadows (rule 3) that should not be shadows. So I feel if we leave rule 3 out, the extra optimum back tracks we might miss are worth it to keep our optimum target rules simple. \par
+\par
+Currently, there are some cases where a walk and grid combination will break. Scenerios where the naive backtrack never hits a back track target causes these failures. eg: Letter ZigZag and 13x13_56_144\par
 \par
 CAT\par
 ooo\par
