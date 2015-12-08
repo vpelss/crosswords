@@ -164,24 +164,18 @@ srand;
 $in{TimeLimit} = 1;
 $in{layouts} = 'grids';
 $in{grid} = 'BigOne';
-<<<<<<< HEAD
 $in{grid} = '6x6';
 $in{grid} = "13x13_22_112";
-=======
 #$in{grid} = '5x5';
 $in{grid} = "13x13_56_144";
->>>>>>> origin/master
 $in{optimalbacktrack} = 1;
 $in{shuffle} = 1;
 $in{wordfile} = "Sympathy_31121";
 $in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
-<<<<<<< HEAD
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
-=======
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
->>>>>>> origin/master
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
 #%in = &parse_form; #get input arguments. comment out for commandline running
