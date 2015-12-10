@@ -128,7 +128,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &Main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -176,9 +176,9 @@ $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
-#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
+$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-%in = &parse_form; #get input arguments. comment out for commandline running
+#%in = &parse_form; #get input arguments. comment out for commandline running
 
 &Process_arguments();
 
@@ -1182,42 +1182,29 @@ if ($in{mode} eq "letter") {
                            $xx = $letterPosition->[0];
                            $yy = $letterPosition->[1];
                            if ($debug) {print "for word letter pos $xx $yy : "}
-                           &MarktargetLettersForBackTrackFromWordLetterPositions($x , $y , $xx,$yy,$OppositeDirection[$dir]);
+                           &MarktargetLettersForBackTrackFromWordLetterPositions($x , $y , $xx , $yy , $OppositeDirection[$dir]);
                            }
                   if ($debug) {print "\n\n"}
                   }
-            9 Walk back from $x , Yy if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
-
+            #Walk back from $x , $y if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
+            @upToXYTemp = @upToXY;
+            my $trigger = 1 ;
+            foreach my $item (@upToXYTemp) {
+                    $xx = ${$item}{x};
+                    $yy = ${$item}{y};
+                    if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
+                        $trigger = 0; #found at least one target
+                        last;
+                        }
+                    }
+            if ($trigger == 1) {
+                 undef $targetLettersForBackTrack{$x}{$y};
+                 if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
+                 my $h = 9;
+                 }
             }
      @nextLetterPositionsOnBoard = @upToXY; #IMPORTANT restore @nextLetterPositionsOnBoard
      }
-
-
-=pod
-if ($in{mode} eq "letter") {
-      for ($x = 0 ; $x < $in{width} ; $x++) {
-            for ($y = 0 ; $y < $in{height} ; $y++)  {
-                  for ($dir = 0 ; $dir < 2 ; $dir++) {
-                        if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
-                        if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
-                        #increase $targetLettersForBackTrack for all letter positions in word
-                        @wordLetterPositions = &MarktargetLettersForBackTrackFromWordLetterPositions($x,$y,$x,$y,$dir);
-                        #increase $targetLettersForBackTrack for all letter positions in crossing words
-                        if ($debug) {print "crossing\n "}
-                        foreach $letterPosition (@wordLetterPositions) {
-                                $xx = $letterPosition->[0];
-                                $yy = $letterPosition->[1];
-                                if ($debug) {print "for word letter pos $xx $yy : "}
-                                &MarktargetLettersForBackTrackFromWordLetterPositions($x , $y , $xx,$yy,$OppositeDirection[$dir]);
-                                }
-                        if ($debug) {print "\n\n"}
-                        }
-                  #filter out shadows ($targetLettersForBackTrack that only  = 1)
-                  #or just compare for > 1 later in optimization routine
-                  }
-             }
-      }
-=cut
 
 if ($debug) {&show()}
 
@@ -1649,12 +1636,9 @@ while ($success == 0)
         #if we are here, the last recursive attempt to lay a word failed. So we are backtracking.
         #returning from last letter which failed
 
-        #$wordsThatAreInserted{$horizInsertedWord} = undef; #allow us to reuse word
-        #$wordsThatAreInserted{$vertInsertedWord} = undef; #allow us to reuse word
-        #$wordsThatAreInserted{$horizMask} = undef; #allow us to reuse word
-        #$wordsThatAreInserted{$vertMask} = undef; #allow us to reuse word
-         delete $wordsThatAreInserted{$horizInsertedWord};
-         delete $wordsThatAreInserted{$vertInsertedWord};
+         #maybe undef $wordsThatAreInserted{$horizInsertedWord} for speed
+         delete $wordsThatAreInserted{$horizInsertedWord};  #allow us to reuse word
+         delete $wordsThatAreInserted{$vertInsertedWord};  #allow us to reuse word
 
         #failed so reset letter to unoccupied
         &SetXY($x,$y,$unoccupied);
