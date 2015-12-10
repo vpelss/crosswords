@@ -1170,6 +1170,7 @@ if ($in{mode} eq "letter") {
             push @upToXY , {%cellPosition}; # put it on @upToXY
             $x = $cellPosition{x};
             $y = $cellPosition{y};
+            #push @upToXY , {x => $x, y => $y};  # put it on @upToXY
             #then process for this letter position both $dir
             for ($dir = 0 ; $dir < 2 ; $dir++) {
                   if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
@@ -1187,11 +1188,16 @@ if ($in{mode} eq "letter") {
                   if ($debug) {print "\n\n"}
                   }
             #Walk back from $x , $y if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
+
             @upToXYTemp = @upToXY;
+
             my $trigger = 1 ;
             foreach my $item (@upToXYTemp) {
                     $xx = ${$item}{x};
                     $yy = ${$item}{y};
+
+                    9 xx and yy are always 0?
+
                     if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
                         $trigger = 0; #found at least one target
                         last;
