@@ -174,11 +174,11 @@ $in{wordfile} = "Sympathy_31121";
 $in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
+$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
-#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
-#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
+$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-%in = &parse_form; #get input arguments. comment out for commandline running
+#%in = &parse_form; #get input arguments. comment out for commandline running
 
 &Process_arguments();
 
@@ -1165,9 +1165,9 @@ my @wordLetterPositions;
 my %cellPosition;
 
 if ($in{mode} eq "letter") {
-     while (scalar @nextLetterPositionsOnBoard != 0) {
+     while (scalar @nextLetterPositionsOnBoard == 0) {
             %cellPosition =  %{ shift @nextLetterPositionsOnBoard }; #remove next letter position
-            push @upToXY , {%cellPosition}; # put it on @upToXY
+            push @upToXY ,%cellPosition; # put it on @upToXY
             $x = $cellPosition{x};
             $y = $cellPosition{y};
             #then process for this letter position both $dir
@@ -1186,11 +1186,12 @@ if ($in{mode} eq "letter") {
                            }
                   if ($debug) {print "\n\n"}
                   }
-            9 Walk back from $x , Yy if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
+            #9 Walk back from $x , Yy if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
 
             }
-     @nextLetterPositionsOnBoard = @upToXY; #IMPORTANT restore @nextLetterPositionsOnBoard
      }
+
+
 
 
 =pod

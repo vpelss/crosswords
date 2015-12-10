@@ -1,1 +1,4 @@
- Your crossword is at:<br><a href="../../crosswords/common/1449510084/index.html">../../crosswords/common/1449510084/index.html</a><br> 
+
+
+Failed to fill grid Counts:21549 Words layed:0 
+
