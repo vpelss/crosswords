@@ -1,17 +1,13 @@
-#!/usr/bin/perl                                                 +
+#!/usr/bin/perl
+
 
 #future ideas ver 3.0 meta recurse using blocks. blocks will consist of a starting word and dir and all it's crossing words
 
 #allow sentences in words (strip out spaces)
 
-# speed up word load use 1 line of coma, separated words
-
-# turn on simple word recursion option
+# speed up word load use 1 line of coma, separated words??
 
 #separate experimental options on front page
-
-#!!!!!!!!!!!!!!!!on optimal, what if there is no upper or left letter (no optimal target)?  cancel optimal!
-#or no touchong words in optimal list that we have laid yet
 
 #shadow (> 1) does not work if letter only belongs to a horiz or vert word
 #also fails on british
@@ -1157,12 +1153,18 @@ sub CalculateOptimalBacktracks()
 #rule 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter
 #rule 3 Remove shadows by only keeping the intersection of rule 1 and 2
 # $targetLettersForBackTrack{x failed letter}{y failed letter}{x}{y} = 1 #pre-generated for speed!
-my ($x , $y , $xx , $yy , $dir , $letterPosition);
+my ($x , $y , $xx , $yy , $letterPosition);
 my @upToXY ; #this will be the shifter part we will check to see if there is an
       #optimal target in the backtrack. We need 2 as one needs to be prisine so we can reassign it to @nextLetterPositionsOnBoard
 my  @upToXYTemp ;
 my @wordLetterPositions;
 my $cellPosition;
+
+my %wordPosition;
+my $wordNumber;
+my $dir;
+my @upToCurrentWord;
+my @upToCurrentWordTemp;
 
 if ($in{mode} eq "letter") {
      while (scalar @nextLetterPositionsOnBoard != 0) {
@@ -1171,7 +1173,8 @@ if ($in{mode} eq "letter") {
             $y = ${$cellPosition}{y};
             #push @upToXY , {x => $x , y => $y};  # put it on @upToXY
             push @upToXY , $cellPosition;  # put it on @upToXY
-            for ($dir = 0 ; $dir < 2 ; $dir++) {
+            #for ($dir = 0 ; $dir < 2 ; $dir++)
+                  {
                   if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
                   if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
                   #increase $targetLettersForBackTrack for all letter positions in word
@@ -1212,6 +1215,50 @@ if ($in{mode} eq "letter") {
 if ($debug) {&show()}
 
 if ($in{mode} eq 'word') {
+
+     while (scalar @nextWordOnBoard != 0) {
+            %wordPosition =  %{ shift @nextWordOnBoard }; #keep in subroutine unchaged as we may need to unshift on a recursive return
+            $wordNumber = $wordPosition{wordNumber};
+            $dir = $wordPosition{dir};
+            push @upToCurrentWord , $cellPosition;  # put it on @upToCurrentWord
+
+            for ($dir = 0 ; $dir < 2 ; $dir++) {
+                  if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
+                  if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
+                  #increase $targetLettersForBackTrack for all letter positions in word
+                  @wordLetterPositions = &MarktargetLettersForBackTrackFromWordLetterPositions($x,$y,$x,$y,$dir);
+                  #increase $targetLettersForBackTrack for all letter positions in crossing words
+                  if ($debug) {print "crossing\n "}
+                  foreach $letterPosition (@wordLetterPositions) {
+                           $xx = $letterPosition->[0];
+                           $yy = $letterPosition->[1];
+                           if ($debug) {print "for word letter pos $xx $yy : "}
+                           &MarktargetLettersForBackTrackFromWordLetterPositions($x , $y , $xx , $yy , $OppositeDirection[$dir]);
+                           }
+                  if ($debug) {print "\n\n"}
+                  }
+            #Walk back from $x , $y if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
+            @upToXYTemp = @upToXY; #maintain @upToXY
+            pop @upToXYTemp; #remove the square we are on, as it will never be a bactrack target. it is the source
+            my $trigger = 1 ; #assume no optimal backtrack targets
+            foreach my $item (@upToXYTemp) { #try and prove wrong
+                    $xx = ${$item}{x};
+                    $yy = ${$item}{y};
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} >= 1 ) {
+                    if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} != undef ) {
+                        $trigger = 0; #found at least one target
+                        last;
+                        }
+                    }
+            if ($trigger == 1) {
+                 undef $targetLettersForBackTrack{$x}{$y}; #set to undef so it will alet us later there are no backtrack targets.
+                 #$targetLettersForBackTrack{$x}{$y} = ();
+                 if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
+                 }
+            }
+     @nextLetterPositionsOnBoard = @upToXY; #IMPORTANT restore @nextLetterPositionsOnBoard
+
 
      }
 }
@@ -2605,11 +2652,6 @@ if ($wordNumber > 0) { #there is a vert mask
      if (scalar @lettersVert == 0 ) { #should never get here as our $linearWordSearch does not stop mid word
            die ('no \@lettersVert. impossible');
            }
-#     if (scalar( @lettersVert) == 1) { #only one letter possible. The word may be unique. so check to see if this word is already used
-#         if (&IsWordAlreadyUsed($mask)) {
-#              return (); #return empty as this word is already used
-#              }
-#         }
      }
 
 #find horiz mask and possible letters
@@ -2621,11 +2663,6 @@ if ($wordNumber > 0) { #there is a horiz mask
      if ( scalar @lettersHoriz == 0 ) { #should never get here as our $linearWordSearch does not stop mid word
             die ('no \@lettersHoriz. impossible');
            }
-#     if (scalar( @lettersHoriz) == 1) { #only one letter possible. The worrd may be unique. so check to see if this word is already used
-#         if (&IsWordAlreadyUsed($mask)) {
-#               return (); #return empty as this word is already used
-#               }
-#         }
      }
 
 if (($isHorizWord) and ($isVertWord)) { #there is a horiz and vert word at this cell. find inersection of possible letters
@@ -2643,35 +2680,6 @@ if (($isHorizWord) and (not $isVertWord)) { #there is only a horizontal word at 
      }
 die('should not get to end of letterPossibleAt()');
 };
-
-#remove ?
-sub GetTouchingLetters()
-{
-#input: cell position x , y
-#output: global hash (quick access) of cell postions {x}{y}=1 that are above and before
-
-my $x = $_[0];
-my $y = $_[1];
-
-%targetLettersForBackTrack = (); #start clean
-undef %targetLettersForBackTrack;
-
-$x = $x - 1;
-my $char = &GetXY($x,$y);
-if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $unoccupied) )
-     {
-     $targetLettersForBackTrack{$x}{$y}=1;
-     }
-$x = $_[0];
-
-$y = $y - 1;
-$char = &GetXY($x,$y);
-if ( ( not &outsideCrossword($x,$y) )  and ( $char ne $padChar ) and ($char ne $unoccupied) )
-     {
-     $targetLettersForBackTrack{$x}{$y}=1;
-     }
-$y = 0;
-}
 
 sub IsWordAlreadyUsed() {
 #input of mask WORooooo
@@ -2714,14 +2722,7 @@ foreach my $element (@{$_[0]} , @{$_[1]})
         } #count singles or duplicates in the lists
 
 @intersection = grep {($count{$_} > 1)} keys(%count); #only pass to the list duplicates not single values
-=pod
-foreach $element (keys %count) #only pass to the list duplicates not single values
-         {
-         #push @union, $element;
-         #push @{ $count{$element} > 1 ? \@intersection : \@difference }, $element;
-         if ($count{$element} > 1){push @intersection , $element}
-         }
-=cut
+
 if ($debug == 1) {print LOGG "Exiting \&intersection()\n\n"}
 return(@intersection);
 };

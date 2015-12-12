@@ -109,7 +109,7 @@
 								  ONCLICK="alert(slowdownvar);return false;">Slow Down</A><BR><INPUT TYPE="TEXT"
 								  NAME="SlowDown" VALUE="0" SIZE="3"> 5 seconds max</TD> 
 							  </TR> 
-							</TABLE>
+							</TABLE> 
 							<TABLE BORDER="0"
 							 STYLE="border-top: 1pt solid; border-right: 1pt solid; border-bottom: 1pt solid; border-left: 1pt solid"
 							 WIDTH="100%"> 
@@ -190,7 +190,7 @@
 									 VALUE="GenerateNextLetterPositionsOnBoardSnakeWalk">Snake Letters</OPTION> 
 								  </SELECT><BR><INPUT TYPE="CHECKBOX"
 								  NAME="simplewordmasksearch">
-								  <A HREF="#" ONCLICK="alert(slowdownvar);return false;">Simple Word Mask
+								  <A HREF="#" ONCLICK="alert(simplewordmaskvar);return false;">Simple Word Mask
 								  Search</A><HR><INPUT TYPE="CHECKBOX" NAME="optimalbacktrack" VALUE="1"
 								  CHECKED="CHECKED">
 								  <A HREF="#" ONCLICK="alert(optimumbacktrackvar);return false;">Optimal
@@ -271,6 +271,7 @@ var worddatabasevar = 'The more words we have in our database the easier it is t
 var walkpathvar = 'The walk path is the order we try to lay down words. The path chosen can vastly improve the generation time. Different paths work better for different grids but Crossing Words is the best for most situations. Letter walks are the slowest and are provided only to test and prove this fact.';
 var optimumbacktrackvar = 'Optimal Backtrack vastly speeds up the search by removing more than one word when we can no longer lay down another word. It will continue to remove words until it reaches a word that potentially caused the failure.';
 var slowdownvar = 'Only use this if you want to see the walk in slow time. It is not useful in generating crosswords.';
+var simplewordmaskvar = 'This lets the recursion figure out if the crossing words will play nice. Although is speeds up the words layed per second, it is slower overall.';
 
 //get processing.txt often
 function Get_Processing()
