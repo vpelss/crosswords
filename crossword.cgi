@@ -10,7 +10,6 @@
 
 #separate experimental options on front page
 
-
 #!!!!!!!!!!!!!!!!on optimal, what if there is no upper or left letter (no optimal target)?  cancel optimal!
 #or no touchong words in optimal list that we have laid yet
 
@@ -128,7 +127,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &Main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -178,7 +177,7 @@ $in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
 $in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-#%in = &parse_form; #get input arguments. comment out for commandline running
+%in = &parse_form; #get input arguments. comment out for commandline running
 
 &Process_arguments();
 
@@ -1159,19 +1158,19 @@ sub CalculateOptimalBacktracks()
 #rule 3 Remove shadows by only keeping the intersection of rule 1 and 2
 # $targetLettersForBackTrack{x failed letter}{y failed letter}{x}{y} = 1 #pre-generated for speed!
 my ($x , $y , $xx , $yy , $dir , $letterPosition);
-my ( @upToXY , @upToXYTemp ) ; #this will be the shifter part we will check to see if there is an
+my @upToXY ; #this will be the shifter part we will check to see if there is an
       #optimal target in the backtrack. We need 2 as one needs to be prisine so we can reassign it to @nextLetterPositionsOnBoard
+my  @upToXYTemp ;
 my @wordLetterPositions;
-my %cellPosition;
+my $cellPosition;
 
 if ($in{mode} eq "letter") {
      while (scalar @nextLetterPositionsOnBoard != 0) {
-            %cellPosition =  %{ shift @nextLetterPositionsOnBoard }; #remove next letter position
-            push @upToXY , {%cellPosition}; # put it on @upToXY
-            $x = $cellPosition{x};
-            $y = $cellPosition{y};
-            #push @upToXY , {x => $x, y => $y};  # put it on @upToXY
-            #then process for this letter position both $dir
+            $cellPosition =  shift @nextLetterPositionsOnBoard ; #remove next letter position
+            $x = ${$cellPosition}{x};
+            $y = ${$cellPosition}{y};
+            #push @upToXY , {x => $x , y => $y};  # put it on @upToXY
+            push @upToXY , $cellPosition;  # put it on @upToXY
             for ($dir = 0 ; $dir < 2 ; $dir++) {
                   if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
                   if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
@@ -1190,23 +1189,22 @@ if ($in{mode} eq "letter") {
             #Walk back from $x , $y if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
 
             @upToXYTemp = @upToXY;
-
-            my $trigger = 1 ;
-            foreach my $item (@upToXYTemp) {
+            pop @upToXYTemp; #remove the square we are on, as it will never be a bactrack target. it is the source
+            my $trigger = 1 ; #assume no optimal backtrack targets
+            foreach my $item (@upToXYTemp) { #try and prove wrong
                     $xx = ${$item}{x};
                     $yy = ${$item}{y};
-
-                    9 xx and yy are always 0?
-
-                    if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} >= 1 ) {
+                    if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} != undef ) {
                         $trigger = 0; #found at least one target
                         last;
                         }
                     }
             if ($trigger == 1) {
                  undef $targetLettersForBackTrack{$x}{$y};
+                 #$targetLettersForBackTrack{$x}{$y} = ();
                  if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
-                 my $h = 9;
                  }
             }
      @nextLetterPositionsOnBoard = @upToXY; #IMPORTANT restore @nextLetterPositionsOnBoard
@@ -1263,7 +1261,8 @@ if ($debug) {print "letter positions:\n"}
 foreach  $letterPosition (@wordLetterPositions) {
          $xxx = $letterPosition->[0];
          $yyy = $letterPosition->[1];
-         $targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy}++; #add 1
+         #$targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy} = $targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy} + 1; #add 1
+         $targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy}++ ;
          if ($debug ) {print "\$targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy}  = $targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy}\n"}
          }
 if ($debug ) {print "\n"}
@@ -1493,7 +1492,7 @@ while ($success == 0)
 die('never get here'); #never get here
 }
 
-my %letterBackTrackSource; # $letterBackTrackSource{x} and  $letterBackTrackSource{y} if () then we are not looking for an optimal backtrack target
+my %letterBackTrackSource; #set to () to stop backtrack and set for backtrack $letterBackTrackSource{x} and  $letterBackTrackSource{y}
 sub RecursiveLetters()
 {
 #recursive try to lay down letters using @nextLetterPositionsOnBoard, will shift of, store and unshift if required
@@ -1555,11 +1554,13 @@ while ($success == 0)
               #optimal backtrack option. saves hundreds of naive backtracks!
               #get/set global touchingLetters and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
               if ($in{optimalbacktrack} == 1) {
-                   if (%letterBackTrackSource == ()) {
-                        #&GetTouchingLetters($x,$y);
-                        $letterBackTrackSource{'x'} = $x;
-                        $letterBackTrackSource{'y'} = $y;
-                        if ($debug) {print "optimum set \%letterBackTrackSource  $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
+                   if (%letterBackTrackSource == ()) { #ignore setting backtrack if we are already backtracking
+                        if ( $targetLettersForBackTrack{$x}{$y} != undef ) { #check to see if there are any backtrack targets possible for $x $y first
+                              #&GetTouchingLetters($x,$y);
+                              $letterBackTrackSource{'x'} = $x;
+                              $letterBackTrackSource{'y'} = $y;
+                              if ($debug) {print "optimum set \%letterBackTrackSource  $letterBackTrackSource{x} $letterBackTrackSource{y}\n"}
+                              }
                         }
                   }
               if ($debug) {print "out of letters at $x,$y  \n"}
@@ -2407,7 +2408,7 @@ for ($y = 0 ; $y < $in{height} ; $y++)
              {
              if ($puzzle[$x][$y]->{Letter} ne $padChar)
                   {
-                  push @nextLetterPositionsOnBoard , {x => $x, y => $y};
+                  push @nextLetterPositionsOnBoard , {x => $x , y => $y};
                   if ($debug) {print "($x,$y)"}
                   }
              }
