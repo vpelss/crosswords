@@ -1187,8 +1187,7 @@ if ($in{mode} eq "letter") {
                   if ($debug) {print "\n\n"}
                   }
             #Walk back from $x , $y if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
-
-            @upToXYTemp = @upToXY;
+            @upToXYTemp = @upToXY; #maintain @upToXY
             pop @upToXYTemp; #remove the square we are on, as it will never be a bactrack target. it is the source
             my $trigger = 1 ; #assume no optimal backtrack targets
             foreach my $item (@upToXYTemp) { #try and prove wrong
@@ -1202,7 +1201,7 @@ if ($in{mode} eq "letter") {
                         }
                     }
             if ($trigger == 1) {
-                 undef $targetLettersForBackTrack{$x}{$y};
+                 undef $targetLettersForBackTrack{$x}{$y}; #set to undef so it will alet us later there are no backtrack targets.
                  #$targetLettersForBackTrack{$x}{$y} = ();
                  if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
                  }
