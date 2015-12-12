@@ -30,7 +30,7 @@ my $archiveurl  = $vpvars::archiveurl;
 my $scripturl  = $vpvars::scripturl;
 
 print "Content-type: text/html\n\n";
-if ( -e "processing.txt") { print"Already running."; die("$0 is already running. Exiting.\n"); };
+#if ( -e "processing.txt") { print"Already running."; die("$0 is already running. Exiting.\n"); };
 
 open(my $processing, ">processing.txt") or die "Can't open : $!";
 lock($processing);
@@ -138,13 +138,15 @@ my %wordNumberDirUsed; #$wordNumberDirUsed{$wordNumber}{$dir} so we only backtra
 my $naiveBacktrack; #a counter
 my $optimalBacktrack; #a counter
 my %touchingWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+my %targetWordsForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if $targetWordsForBackTrack{# source}{dir source} == undef there are NO targets!
+#eg $targetWordsForBackTrack{$wordNumberSource}{$dirSource}{$crossingWordNumber}{$crossingWordDir}
 
 #rule 1. All letters in the horizontal and vertical words (up to the failed letter) can affect the failure of laying a letter
 #rule 2. All crossing words of both the horizontal and vertical words of the failed letter can affect the failure of laying a letter
 #rule 3 Remove shadows by only keeping the intersection of rule 1 and 2
 #rule 3 is ignored (> 1) and is nor (> 0) as it fails (over prunes) on British style crosswords
 # eg: $targetLettersForBackTrack{x failed letter}{y failed letter}{x}{y} > 0 #pregenerated for speed!
-my %targetLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
+my %targetLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if $targetLettersForBackTrack{x failed letter}{y failed letter} == undef there are NO targets!
 
 my $oldTime;
 
@@ -168,12 +170,12 @@ $in{shuffle} = 1;
 $in{wordfile} = "Sympathy_31121";
 $in{wordfile} = "Clues_248505";
 $in{walkpath} = 'crossingwords';
-$in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
+#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardFlat';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
-$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
+#$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-%in = &parse_form; #get input arguments. comment out for commandline running
+#%in = &parse_form; #get input arguments. comment out for commandline running
 
 &Process_arguments();
 
@@ -1165,6 +1167,7 @@ my $wordNumber;
 my $dir;
 my @upToCurrentWord;
 my @upToCurrentWordTemp;
+my @wordPositions;
 
 if ($in{mode} eq "letter") {
      while (scalar @nextLetterPositionsOnBoard != 0) {
@@ -1174,21 +1177,19 @@ if ($in{mode} eq "letter") {
             #push @upToXY , {x => $x , y => $y};  # put it on @upToXY
             push @upToXY , $cellPosition;  # put it on @upToXY
             #for ($dir = 0 ; $dir < 2 ; $dir++)
-                  {
-                  if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
-                  if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
-                  #increase $targetLettersForBackTrack for all letter positions in word
-                  @wordLetterPositions = &MarktargetLettersForBackTrackFromWordLetterPositions($x,$y,$x,$y,$dir);
-                  #increase $targetLettersForBackTrack for all letter positions in crossing words
-                  if ($debug) {print "crossing\n "}
-                  foreach $letterPosition (@wordLetterPositions) {
-                           $xx = $letterPosition->[0];
-                           $yy = $letterPosition->[1];
-                           if ($debug) {print "for word letter pos $xx $yy : "}
-                           &MarktargetLettersForBackTrackFromWordLetterPositions($x , $y , $xx , $yy , $OppositeDirection[$dir]);
-                           }
-                  if ($debug) {print "\n\n"}
-                  }
+            #if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
+            if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
+            #increase $targetLettersForBackTrack for all letter positions in word
+            @wordLetterPositions = &MarktargetLettersForBackTrackFromWordLetterPositions($x,$y,$x,$y,$dir);
+            #increase $targetLettersForBackTrack for all letter positions in crossing words
+            if ($debug) {print "crossing\n "}
+            foreach $letterPosition (@wordLetterPositions) {
+                     $xx = $letterPosition->[0];
+                     $yy = $letterPosition->[1];
+                     if ($debug) {print "for word letter pos $xx $yy : "}
+                     &MarktargetLettersForBackTrackFromWordLetterPositions($x , $y , $xx , $yy , $OppositeDirection[$dir]);
+                     }
+            if ($debug) {print "\n\n"}
             #Walk back from $x , $y if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
             @upToXYTemp = @upToXY; #maintain @upToXY
             pop @upToXYTemp; #remove the square we are on, as it will never be a bactrack target. it is the source
@@ -1215,30 +1216,31 @@ if ($in{mode} eq "letter") {
 if ($debug) {&show()}
 
 if ($in{mode} eq 'word') {
-
      while (scalar @nextWordOnBoard != 0) {
             %wordPosition =  %{ shift @nextWordOnBoard }; #keep in subroutine unchaged as we may need to unshift on a recursive return
             $wordNumber = $wordPosition{wordNumber};
             $dir = $wordPosition{dir};
-            push @upToCurrentWord , $cellPosition;  # put it on @upToCurrentWord
+            push @upToCurrentWord , \%wordPosition ;  # put it on @upToCurrentWord
+            #@upToCurrentWordTemp = @upToCurrentWord;
+            if ($debug) {print "Word # $wordNumber dir $dir\n"}
+            #increase $targetWordsForBackTrack for all crossing words
+            &MarkTargetBackTrackWordsThatCross($wordNumber,$dir,$wordNumber,$dir);
 
-            for ($dir = 0 ; $dir < 2 ; $dir++) {
-                  if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
-                  if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
-                  #increase $targetLettersForBackTrack for all letter positions in word
-                  @wordLetterPositions = &MarktargetLettersForBackTrackFromWordLetterPositions($x,$y,$x,$y,$dir);
-                  #increase $targetLettersForBackTrack for all letter positions in crossing words
-                  if ($debug) {print "crossing\n "}
-                  foreach $letterPosition (@wordLetterPositions) {
-                           $xx = $letterPosition->[0];
-                           $yy = $letterPosition->[1];
-                           if ($debug) {print "for word letter pos $xx $yy : "}
-                           &MarktargetLettersForBackTrackFromWordLetterPositions($x , $y , $xx , $yy , $OppositeDirection[$dir]);
-                           }
-                  if ($debug) {print "\n\n"}
-                  }
-            #Walk back from $x , $y if no optimal targets, then optimal will not work here. So delete %targetLettersForBackTrack{$x}{$y}
-            @upToXYTemp = @upToXY; #maintain @upToXY
+            #increase $targetWordsForBackTrack for all crossing words that crossed our words
+            #ignore if simple mask search
+
+            if ($debug) {print "crossing\n "}
+            @wordPositions = &GetCrossingWords($wordNumber,$dir);
+            foreach my $wordPosition (@wordPositions) {
+                     my $wordNumberCrossing = ${$wordPosition}[0];
+                     my $dirCrossing = ${$wordPosition}[1];
+                     if ($debug) {print "for word letter pos $xx $yy : "}
+                     &MarkTargetBackTrackWordsThatCross($wordNumber,$dir,$wordNumberCrossing,$dirCrossing);
+                     }
+            if ($debug) {print "\n\n"}
+=pod
+            #Walk back from # dir if no optimal targets, then optimal will not work here. So delete %targetWordsForBackTrack{#}{dir}
+            @upToCurrentWordTemp = @upToCurrentWord; #maintain @upToCurrentWord
             pop @upToXYTemp; #remove the square we are on, as it will never be a bactrack target. it is the source
             my $trigger = 1 ; #assume no optimal backtrack targets
             foreach my $item (@upToXYTemp) { #try and prove wrong
@@ -1256,10 +1258,9 @@ if ($in{mode} eq 'word') {
                  #$targetLettersForBackTrack{$x}{$y} = ();
                  if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
                  }
+=cut
             }
-     @nextLetterPositionsOnBoard = @upToXY; #IMPORTANT restore @nextLetterPositionsOnBoard
-
-
+     @nextWordOnBoard  = @upToCurrentWord; #IMPORTANT restore @nextWordOnBoard
      }
 }
 
@@ -1279,6 +1280,32 @@ for (my $x = 0 ; $x < $in{width} ; $x++) {
                   print "\n\n";
           }
      }
+}
+
+sub MarkTargetBackTrackWordsThatCross()
+{
+#input: word number and direcction
+#find all crossing words and for each:
+#output: global hash (quick access) of words number and direction of words that are backtrack targets
+# $targetWordsForBackTrack{# of source}{dir of source}{# target}{dir target} = 1
+
+my $wordNumberSource = $_[0];
+my $dirSource = $_[1];
+
+my $wordNumber = $_[2];
+my $dir = $_[3];
+
+my @crossingWords;
+my $crossingWord;
+my $crossingWordDir;
+my $crossingWordNumber;
+
+@crossingWords = &GetCrossingWords($wordNumber,$dir);
+foreach $crossingWord (@crossingWords)  {
+         $crossingWordNumber = ${$crossingWord}[0];
+         $crossingWordDir = $OppositeDirection[$dir];
+         $targetWordsForBackTrack{$wordNumberSource}{$dirSource}{$crossingWordNumber}{$crossingWordDir}++;
+         }
 }
 
 sub MarktargetLettersForBackTrackFromWordLetterPositions()
