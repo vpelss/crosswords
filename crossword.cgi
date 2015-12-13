@@ -123,7 +123,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &Main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -1216,12 +1216,12 @@ if ($in{mode} eq "letter") {
 if ($debug) {&show()}
 
 if ($in{mode} eq 'word') {
+     #my @aa = @nextWordOnBoard;
      while (scalar @nextWordOnBoard != 0) {
             %wordPosition =  %{ shift @nextWordOnBoard }; #keep in subroutine unchaged as we may need to unshift on a recursive return
             $wordNumber = $wordPosition{wordNumber};
             $dir = $wordPosition{dir};
-            push @upToCurrentWord , \%wordPosition ;  # put it on @upToCurrentWord
-            #@upToCurrentWordTemp = @upToCurrentWord;
+            push @upToCurrentWord , {%wordPosition} ;  # put it on @upToCurrentWord
             if ($debug) {print "Word # $wordNumber dir $dir\n"}
             #increase $targetWordsForBackTrack for all crossing words
             &MarkTargetBackTrackWordsThatCross($wordNumber,$dir,$wordNumber,$dir);
@@ -1241,20 +1241,21 @@ if ($in{mode} eq 'word') {
 =pod
             #Walk back from # dir if no optimal targets, then optimal will not work here. So delete %targetWordsForBackTrack{#}{dir}
             @upToCurrentWordTemp = @upToCurrentWord; #maintain @upToCurrentWord
-            pop @upToXYTemp; #remove the square we are on, as it will never be a bactrack target. it is the source
+            pop @upToCurrentWordTemp; #remove the word we are on, as it will never be a bactrack target. it is the source
             my $trigger = 1 ; #assume no optimal backtrack targets
-            foreach my $item (@upToXYTemp) { #try and prove wrong
-                    $xx = ${$item}{x};
-                    $yy = ${$item}{y};
+            foreach my $item (@upToCurrentWordTemp) { #try and prove wrong
+                    my $wordNumberTarg = ${$item}{wordNumber};
+                    my $dirTarg = ${$item}{dir};
+
                     #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
                     #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} >= 1 ) {
-                    if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} != undef ) {
+                    if ( $targetWordsForBackTrack{$wordNumber}{$dir}{$wordNumberTarg}{$dirTarg} != undef ) {
                         $trigger = 0; #found at least one target
                         last;
                         }
                     }
             if ($trigger == 1) {
-                 undef $targetLettersForBackTrack{$x}{$y}; #set to undef so it will alet us later there are no backtrack targets.
+                 undef $targetWordsForBackTrack{$wordNumber}{$dir}; #set to undef so it will alet us later there are no backtrack targets.
                  #$targetLettersForBackTrack{$x}{$y} = ();
                  if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
                  }
