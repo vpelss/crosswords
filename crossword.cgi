@@ -123,7 +123,7 @@ my @OppositeDirection;$OppositeDirection[0] = 1;$OppositeDirection[1] = 0; #inst
 my $timeForCrossword;
 my $recursiveCount = 1;
 my $timelimit = 60 * 1 ; #only allow the script to run this long
-my $debug = 1; # 1 to show debug info. could be used for attacks. leave set to 0
+my $debug = 0; # 1 to show debug info. could be used for attacks. leave set to 0
 
 eval { &Main; };     # Trap any fatal errors so the program hopefully
 if ($@) {  &PrintProcessing("fatal error: $@"); &cgierr("fatal error: $@"); }     # never produces that nasty 500 server error page.
@@ -175,7 +175,7 @@ $in{walkpath} = 'crossingwords';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardDiag';
 #$in{walkpath} = 'GenerateNextLetterPositionsOnBoardZigZag';
 
-#%in = &parse_form; #get input arguments. comment out for commandline running
+%in = &parse_form; #get input arguments. comment out for commandline running
 
 &Process_arguments();
 
@@ -1213,10 +1213,7 @@ if ($in{mode} eq "letter") {
      @nextLetterPositionsOnBoard = @upToXY; #IMPORTANT restore @nextLetterPositionsOnBoard
      }
 
-if ($debug) {&show()}
-
 if ($in{mode} eq 'word') {
-     #my @aa = @nextWordOnBoard;
      while (scalar @nextWordOnBoard != 0) {
             %wordPosition =  %{ shift @nextWordOnBoard }; #keep in subroutine unchaged as we may need to unshift on a recursive return
             $wordNumber = $wordPosition{wordNumber};
@@ -1227,18 +1224,19 @@ if ($in{mode} eq 'word') {
             &MarkTargetBackTrackWordsThatCross($wordNumber,$dir,$wordNumber,$dir);
 
             #increase $targetWordsForBackTrack for all crossing words that crossed our words
-            #ignore if simple mask search
-
-            if ($debug) {print "crossing\n "}
-            @wordPositions = &GetCrossingWords($wordNumber,$dir);
-            foreach my $wordPosition (@wordPositions) {
+            #ignore double crossing if simple mask search
+            if (not $in{simplewordmasksearch}) {
+                if ($debug) {print "crossing\n "}
+                @wordPositions = &GetCrossingWords($wordNumber,$dir);
+                foreach my $wordPosition (@wordPositions) {
                      my $wordNumberCrossing = ${$wordPosition}[0];
                      my $dirCrossing = ${$wordPosition}[1];
                      if ($debug) {print "for word letter pos $xx $yy : "}
                      &MarkTargetBackTrackWordsThatCross($wordNumber,$dir,$wordNumberCrossing,$dirCrossing);
                      }
-            if ($debug) {print "\n\n"}
-=pod
+                if ($debug) {print "\n\n"}
+                }
+
             #Walk back from # dir if no optimal targets, then optimal will not work here. So delete %targetWordsForBackTrack{#}{dir}
             @upToCurrentWordTemp = @upToCurrentWord; #maintain @upToCurrentWord
             pop @upToCurrentWordTemp; #remove the word we are on, as it will never be a bactrack target. it is the source
@@ -1259,27 +1257,9 @@ if ($in{mode} eq 'word') {
                  #$targetLettersForBackTrack{$x}{$y} = ();
                  if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
                  }
-=cut
+
             }
      @nextWordOnBoard  = @upToCurrentWord; #IMPORTANT restore @nextWordOnBoard
-     }
-}
-
-sub show()
-{
-for (my $x = 0 ; $x < $in{width} ; $x++) {
-     for (my $y = 0 ; $y < $in{height} ; $y++)  {
-          my @rr = keys %{$targetLettersForBackTrack{$x}{$y}};
-          print "For: $x $y \n" ;
-          foreach my $item (@rr) {
-                  #print "$item $targetLettersForBackTrack{$item}, ";
-                  my @ss = keys %{$targetLettersForBackTrack{$x}{$y}{$item}};
-                  foreach my $item2 (@ss) {
-                          print "\$targetLettersForBackTrack{$x}{$y}{$item}{$item2} = $targetLettersForBackTrack{$x}{$y}{$item}{$item2}\n";
-                          }
-                  }
-                  print "\n\n";
-          }
      }
 }
 
@@ -1442,6 +1422,7 @@ my $tt = time() - $t;
 if ($debug ) {print "$lineCount lines and $wordCount words loaded in $tt sec \n\n";}
 }
 
+my %wordBackTrackSource; #set to () to stop backtrack and set for backtrack $letterBackTrackSource{x} and  $letterBackTrackSource{y}
 sub RecursiveWords()
 {
 #recursive try to lay down words using @nextWordOnBoard, will shift off, store and unshift if required
@@ -1495,7 +1476,8 @@ while ($success == 0)
               unshift @nextWordOnBoard , {wordNumber => $wordNumber, dir => $dir};
               #get/set global touchingWords and backtrack to the first  member of it we encounter. if not == () we are in a backtrack state!
               if ($in{optimalbacktrack} == 1) {
-                    &GetTouchingWords($wordNumber,$dir);
+                   $wordBackTrackSource{wordNumber} = $wordNumber;
+                   $wordBackTrackSource{dir} = $dir;
                     }
               $wordNumberDirUsed{$wordNumber}{$dir} = undef;
               return 0;
@@ -1539,16 +1521,17 @@ while ($success == 0)
 
         if ($in{optimalbacktrack} == 0)
              {
-             %touchingWordsForBackTrack =(); #stop optimal recursion?
+             %wordBackTrackSource = (); #stop optimal recursion?
+             #%touchingWordsForBackTrack =(); #stop optimal recursion?
              }
 
         #optimal backtrack check and processing
-        if (%touchingWordsForBackTrack != ())
+        if (%wordBackTrackSource != ())
              {
               #we are doing an optimal backtrack
-              if ($touchingWordsForBackTrack{$wordNumber}{$dir} == 1) {
+              if ($targetWordsForBackTrack{$wordBackTrackSource{wordNumber}}{$wordBackTrackSource{dir}}{$wordNumber}{$dir} > 0) { #if it is equal to one, it is in a 'shaddow' and does not affect the failed letter
                    #we have hit the optimal target. turn off optimal backtrack
-                   %touchingWordsForBackTrack = ();
+                   %wordBackTrackSource = ();
                    }
               else {
                     #still in optimal backtrack so keep going back
