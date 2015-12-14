@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+
 #future ideas ver 3.0 meta recurse using blocks. blocks will consist of a starting word and dir and all it's crossing words
 
 #allow sentences in words (strip out spaces)
@@ -10,6 +11,10 @@
 
 #shadow (> 1) does not work if letter only belongs to a horiz or vert word
 #also fails on british
+
+#global optimal list (not really a list, but a single target!  If empty then naive) precalculated?
+#maybe not as walk may depend on return.... but if we calculate it after the walk, maybe
+#very hard to know which target to choose in advance!
 
 use strict;
 
@@ -460,8 +465,21 @@ if ($message ne "") {
          {$string = "$message";}
      }
 
+#$processing->flush();
+
+
 seek($processing, 0 , 0); #need to keep file open to lock it!
+#truncate $processing,0;
+
 print $processing "$string";
+
+#unlock($processing);
+#open(my $processing, ">processing.txt") or die "Can't open : $!";
+#lock($processing);
+
+
+#close($processing); #need to close so it erases file
+#open($processing, ">processing.txt") or die "Can't open : $!";
 };
 
 sub Process_arguments {
@@ -527,6 +545,7 @@ foreach my $item (@nextWordOnBoard)
          {
          if ($debug ) {print "($item->{wordNumber},$item->{dir})";}
          }
+#print "\n\n";
 }
 
 sub GenerateNextWordPositionsOnBoardNumerical
@@ -545,6 +564,7 @@ for (my $wordNumber = 1 ; $wordNumber < 300 ; $wordNumber++) #loop through all w
             if ($debug ) {print "($wordNumber,$dir)";}
             }
       }
+#print "\n";
 }
 
 sub GenerateNextWordPositionsOnBoardRandom
@@ -568,6 +588,7 @@ foreach $nextWordOnBoard (@nextWordOnBoard) #loop through all word numbers
      {
      if ($debug ) {print "(${$nextWordOnBoard}{'wordNumber'} , ${$nextWordOnBoard}{'dir'} )";}
       }
+#print "\n";
 }
 
 sub GenerateNextWordPositionsOnBoardAcrossThenDown
@@ -585,6 +606,7 @@ for (my $dir = 0 ; $dir < 2 ; $dir++) #loop through each direction even if it do
             if ($debug ) {print "($wordNumber,$dir)";}
             }
       }
+#print "\n";
 }
 
 sub GenerateNextWordPositionsOnBoardZigZag
@@ -648,6 +670,7 @@ do {
              }
         }
 until ( ($x == $in{width} - 1) and ($y == $in{height} - 1) );
+#print "\n";
 }
 
 sub GenerateNextWordPositionsOnBoardDiag
@@ -761,6 +784,10 @@ for ($y = 0 ; $y < $in{height} ; $y++)
             }
       }
 my $totalCells = $in{height} * $in{width};
+#my $density = 100 * $whiteCells / $totalCells;
+#$density = sprintf "%.1f", $density;
+#print "Total: $totalCells Pad Cells: $padCells Density: $density\n\n";
+
 my $time_to_quit = time() + 3; #5 seconds!
 MAINLOOP: while (time() < $time_to_quit)
        {
@@ -1088,6 +1115,7 @@ for ($y = 0 ; $y < $in{height} ; $y++)
             }
       }
 
+
 #calculate interlock and density
 for ($y = 0 ; $y < $in{height} ; $y++)
       {
@@ -1169,6 +1197,8 @@ if ($in{mode} eq "letter") {
             foreach my $item (@upToXYTemp) { #try and prove wrong
                     $xx = ${$item}{x};
                     $yy = ${$item}{y};
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} >= 1 ) {
                     if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} != undef ) {
                         $trigger = 0; #found at least one target
                         last;
@@ -1176,6 +1206,7 @@ if ($in{mode} eq "letter") {
                     }
             if ($trigger == 1) {
                  undef $targetLettersForBackTrack{$x}{$y}; #set to undef so it will alet us later there are no backtrack targets.
+                 #$targetLettersForBackTrack{$x}{$y} = ();
                  if ($debug) { print "optimal fail at $x $y no backtrack targets. \$targetLettersForBackTrack{$x}{$y} now equals $targetLettersForBackTrack{$x}{$y}\n"};
                  }
             }
@@ -1213,6 +1244,9 @@ if ($in{mode} eq 'word') {
             foreach my $item (@upToCurrentWordTemp) { #try and prove wrong
                     my $wordNumberTarg = ${$item}{wordNumber};
                     my $dirTarg = ${$item}{dir};
+
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} > 0 ) {
+                    #if ( $targetLettersForBackTrack{$x}{$y}{$xx}{$yy} >= 1 ) {
                     if ( $targetWordsForBackTrack{$wordNumber}{$dir}{$wordNumberTarg}{$dirTarg} != undef ) {
                         $trigger = 0; #found at least one target
                         last;
@@ -1281,6 +1315,7 @@ if ($debug) {print "letter positions:\n"}
 foreach  $letterPosition (@wordLetterPositions) {
          $xxx = $letterPosition->[0];
          $yyy = $letterPosition->[1];
+         #$targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy} = $targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy} + 1; #add 1
          $targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy}++ ;
          if ($debug ) {print "\$targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy}  = $targetLettersForBackTrack{$x}{$y}{$xxx}{$yyy}\n"}
          }
@@ -1356,6 +1391,7 @@ foreach $wordLength ( keys %wordLengths)
                            substr ( $mask , $letterPosition , 1 , $letter); #change mask with next letter added to it Cooo to COoo
                            $letterPosition++;
                            }
+
 =pod
                    foreach $mask (@{ $binaryMasks{$wordLength} })
                             {
@@ -1370,6 +1406,7 @@ foreach $wordLength ( keys %wordLengths)
                             #@kkeys = keys %{$wordListByMask{$maskedWord}};
                             }
 =cut
+
                   }
          close (DATA);
          }
@@ -1395,7 +1432,7 @@ sub RecursiveWords()
 my @wordsThatFit;
 my $popWord;
 
-%wordBackTrackSource = (); #clear global indicating that we are moving forward and have cleared the backtrack state
+%touchingWordsForBackTrack = (); #clear global indicating that we are moving forward and have cleared the backtrack state
 
 if (scalar @nextWordOnBoard == 0) {return 1}; #if we have filled all the possible words, we are done. This breaks us out of all recursive  success loops
 my %wordPosition =  %{ shift @nextWordOnBoard }; #keep in subroutine unchaged as we may need to unshift on a recursive return
@@ -1477,6 +1514,7 @@ while ($success == 0)
         #if we are here, the last recursive attempt to lay a word failed. So we are backtracking.
         #returning from last word which failed
 
+        #$wordsThatAreInserted{$popWord} = 0; #allow us to reuse word
         delete $wordsThatAreInserted{$popWord}; #allow us to reuse word
         #failed so reset word to previous mask
         &placeMaskOnBoard($wordNumber , $dir , $mask);
@@ -1484,6 +1522,7 @@ while ($success == 0)
         if ($in{optimalbacktrack} == 0)
              {
              %wordBackTrackSource = (); #stop optimal recursion?
+             #%touchingWordsForBackTrack =(); #stop optimal recursion?
              }
 
         #optimal backtrack check and processing
@@ -1540,7 +1579,8 @@ my $vertMask;
 my $horizInsertedWord; #for quick removal on failed recursions
 my $vertInsertedWord; #for quick removal on failed recursions
 
-%letterBackTrackSource = (); #clear global indicating that we are moving forward and have cleared the backtrack state
+#%targetLettersForBackTrack = (); #clear global indicating that we are moving forward and have cleared the backtrack state
+#%letterBackTrackSource = ();
 
 if (scalar @nextLetterPositionsOnBoard == 0) {return 1}; #if we have filled all the possible letters, we are done. This breaks us out of all recursive  success loops
 
@@ -2221,6 +2261,28 @@ if ($word eq '')
 
 @temp = split(// , $word); #split word into letters
 
+=pod
+$temp2 = 0;
+#see how many times we have crossed another word
+if ($Ignore_Crosses == 0)
+     {
+     foreach $temp (@temp)
+         {
+         if ($puzzle[$x][$y]->{Letter} =~ /\w/)
+              {
+              $temp2++;
+              }
+
+         $x = $x + (not $dir);
+         $y = $y + $dir;
+         }
+     if ($temp2 < 1)
+          {
+          return($_[0] , $_[1] , $dir , '')
+          } #fail if we don't cross at all
+     }
+=cut
+
 $x = $_[0];
 $y = $_[1];
 
@@ -2234,12 +2296,14 @@ $temp2 = 0;
 foreach $temp (@temp) #for each letter in the word
          {
          $puzzle[$x][$y]->{Letter} = $temp; #add letter to grid
+         #push @{$puzzle[$x][$y]->{WordsAtPos}} , $word; #add the word to an array for EACH crossword position so we know what words belong to what square
 
          $x = $x + (not $dir);
          $y = $y + $dir;
          $temp2 = $temp2 + 1;
          }
 #pad at end of word to avoid word butting
+#if ($temp2 != 0) {$puzzle[$x][$y]->{Letter} = $padChar};
 if ( $dir == 0 and ($x < $in{width}) ) {$puzzle[$x][$y]->{Letter} = $padChar};
 if ( $dir == 1 and ($y < $in{height}) ) {$puzzle[$x][$y]->{Letter} = $padChar};
 
@@ -2622,4 +2686,6 @@ sub getNextPossibleLetters {
 my $mask = $_[0];
 
 return keys %{$linearWordSearch{$mask}};  #return possible next letters
+
+#note not much faster than getNextPossibleLettersOld. Just simpler.
 };

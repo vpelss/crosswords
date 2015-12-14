@@ -92,8 +92,8 @@ Note: It really shines if your walking/search path ensures that each following w
 \cf3\f0\fs20\par
 \ul Optimum Backtrack for Word by Word Builds\cf0\ulnone\f1\fs24\par
 \cf3\f0\fs20\par
-By adding an optimum backtrack check and routine for this search, I have improved the generation time by a factor of 2500 times or more in "some" cases. If a word attempt fails, I make a list of the crossing word positions and the adjacent words positions (above,below or left/right). Those are the words that influence the word positions that failed. Then I backtrack until I hit one of the word positions in that list. You must stop on the first one encountered or you risk loosing possible puzzle solutions.\cf0\f1\fs24\par
-\cf3\f0\fs20\par
+By adding an optimum backtrack check and routine for this search, I have improved the generation time by a factor of 2500 times or more in "some" cases. If a word attempt fails, I make a list of the crossing word positions and the adjacent words positions (above,below or left/right). Those are the words that influence the word positions that failed. Then I backtrack until I hit one of the word positions in that list. You must stop on the first one encountered or you risk loosing possible puzzle solutions.\par
+\par
 Grids that do not seem to benefit are the Double Word Grids with 100% interlock.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 eg:\cf0\f1\fs24\par
