@@ -25,7 +25,7 @@ my $archiveurl  = $vpvars::archiveurl;
 my $scripturl  = $vpvars::scripturl;
 
 print "Content-type: text/html\n\n";
-#if ( -e "processing.txt") { print"Already running."; die("$0 is already running. Exiting.\n"); };
+if ( -e "processing.txt") { print"Already running."; die("$0 is already running. Exiting.\n"); };
 
 open(my $processing, ">processing.txt") or die "Can't open : $!";
 lock($processing);
