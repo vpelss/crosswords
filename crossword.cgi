@@ -29,7 +29,7 @@ if ( -e "processing.txt") { print"Already running."; die("$0 is already running.
 
 open(my $processing, ">processing.txt") or die "Can't open : $!";
 lock($processing);
-&PrintResults( qq| Wait for it! | ) ;
+&PrintResults( "Wait for it!" ) ;
 $|=1; #keep it alive as long as possible
 
 #globals
@@ -382,7 +382,6 @@ exit;
 sub Quit()
 {
 print $_[0]; #feedback to web browser
-#unlock($processing);
 close($processing);
 unlink('processing.txt');
 exit;
@@ -537,7 +536,6 @@ sub GenerateNextWordPositionsOnBoardNumerical
 for (my $wordNumber = 1 ; $wordNumber < 300 ; $wordNumber++) #loop through all word numbers even if they don't exist
       {
       for (my $dir = 0 ; $dir < 2 ; $dir++) #loop through each direction even if it doesnt exist
-      #for (my $dir = 1 ; $dir > -1 ; $dir--) #loop through each direction even if it doesnt exist
             {
             my $word = $allMasksOnBoard[$wordNumber][$dir]; # get WORD or MASK at this crossword position
             if ($word eq undef) {next;} # if this [$wordNumber][$dir] does not exists in xword grid, find next one that does
@@ -555,7 +553,6 @@ sub GenerateNextWordPositionsOnBoardRandom
 for (my $wordNumber = 1 ; $wordNumber < 300 ; $wordNumber++) #loop through all word numbers even if they don't exist
       {
       for (my $dir = 0 ; $dir < 2 ; $dir++) #loop through each direction even if it doesnt exist
-      #for (my $dir = 1 ; $dir > -1 ; $dir--) #loop through each direction even if it doesnt exist
             {
             my $word = $allMasksOnBoard[$wordNumber][$dir]; # get WORD or MASK at this crossword position
             if ($word eq undef) {next;} # if this [$wordNumber][$dir] does not exists in xword grid, find next one that does
@@ -747,17 +744,11 @@ my $whiteCells;
 #calculate  density
 for ($y = 0 ; $y < $in{height} ; $y++)
       {
-      for ($x = 0 ; $x < $in{width} ; $x++)
-            {
-            #for ($dir = 0 ; $dir < 2 ; $dir++) #for both across 0 and down 1 words
-                  {
-                  #if ( exists($ThisSquareBelongsToWordNumber[$x][$y][0]) and exists($ThisSquareBelongsToWordNumber[$x][$y][1]) )
-                  #     {$crossingCells++;}
-                  if ($puzzle[$x][$y]->{Letter} eq $padChar)
+      for ($x = 0 ; $x < $in{width} ; $x++) {
+            if ($puzzle[$x][$y]->{Letter} eq $padChar)
                        {$padCells++;}
-                  if ($puzzle[$x][$y]->{Letter} eq $unoccupied)
+            if ($puzzle[$x][$y]->{Letter} eq $unoccupied)
                        {$whiteCells++;}
-                  }
             }
       }
 my $totalCells = $in{height} * $in{width};
@@ -1148,8 +1139,6 @@ if ($in{mode} eq "letter") {
             $y = ${$cellPosition}{y};
             #push @upToXY , {x => $x , y => $y};  # put it on @upToXY
             push @upToXY , $cellPosition;  # put it on @upToXY
-            #for ($dir = 0 ; $dir < 2 ; $dir++)
-            #if ($puzzle[$x][$y]->{Letter} eq $padChar) {next} #ignore pads
             if ($debug) {print "Letter Pos $x,$y dir $dir\n"}
             #increase $targetLettersForBackTrack for all letter positions in word
             @wordLetterPositions = &MarktargetLettersForBackTrackFromWordLetterPositions($x,$y,$x,$y,$dir);
@@ -2160,7 +2149,6 @@ if ($puzzle[$x][$y]->{Letter} eq $padChar) {return 0} #no word length possible o
 
 ($x,$y) = &findStartOfWord($x,$y,$dir);
 # count forward until pad char (last possible word letter)
-#until ( ($puzzle[$x][$y]->{Letter} =~ /$padChar/) or ($puzzle[$x][$y]->{Letter} =~ /$padCharTemp/) or &outsideCrossword($x,$y) )
 until ( ($puzzle[$x][$y]->{Letter} =~ /$padChar/) or &outsideCrossword($x,$y) )
          {
          $x = $x + ($OppositeDirection[$dir]);

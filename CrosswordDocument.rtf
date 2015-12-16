@@ -8,12 +8,21 @@
 \f0\fs20\par
 PERL is not known for it's speed. It also has a higher memory overhead for variable management. But it does have a few benefits. Regular expressions are powerful and fast. Hash variables (associative array) allow for an easy way to create unique values and also make it easy to search and look-up values.\f1\fs24\par
 \f0\fs20\par
-PERL is ubiquitous. PERL is elegant. I just like PERL.\f1\fs24\par
-\f0\fs20\par
+PERL is ubiquitous. PERL is elegant. PERL is organic. I just like PERL.\par
+\par
+Crossword Source Code is at:\par
+{\field{\*\fldinst{HYPERLINK "https://github.com/vpelss/crosswords"}}{\fldrslt{\ul\cf1 https://github.com/vpelss/crosswords}}}\f0\fs20\par
+The word lists are not included. A wonderful one is at  {\field{\*\fldinst{HYPERLINK "www.otsys.com/clue"}}{\fldrslt{\ul\cf1 www.otsys.com/clue}}}\f0\fs20  but it must be modified to work with my code.\par
+It is fully commented, but I make no apologies if it makes no sense to you. \par
+It is always being modified and updated. \par
+If I am in the middle of a big upgrade, the code may not work.\par
+No free support will be given.\par
+If you have suggestions, please use the "Contact Us" link.\par
+\par
 \ul Some things I have learned\ulnone\f1\fs24\par
 \f0\fs20\par
 1. The bigger the database the better.\f1\fs24\par
-\f0\fs20 2. Letter searches are not the answer as there are too many combinations and for each lay of a letter you only check for two words of the common letter. So even with a fast calculation time for each letter, all the recursion adds up. Laying a word and checking that all the crossing words will have a possible word, although much slower, has fewer recursive calls. On most test scenarios I had tried, laying words was faster. Another benefit of laying words is that a single random word replacement searches the puzzle space quicker. For example, when laying the first letter, if that letter will never result in a valid puzzle, we may not know until thousands of recursions have passed. We discover mistakes faster by laying whole words.\f1\fs24\par
+\f0\fs20 2. Letter searches are not the answer as there are too many combinations. For each lay of a letter you only check at most two words with the common letter. So even with a fast calculation time for each letter, all the recursion adds up. Laying a word and checking that all the crossing words will have a possible word, although much slower, has fewer recursive calls. On most test scenarios I had tried, laying words was faster. Another benefit of laying words is that a single random word replacement searches the puzzle space quicker. For example, when laying the first letter, if that letter will never result in a valid puzzle, we may not know until thousands of recursions have passed. We discover mistakes faster by laying whole words.\f1\fs24\par
 \f0\fs20 3. Each time you lay a word, you must ensure that all it's crossing word positions will be able to fit a word. If not, you will preform too many recursions. The code is more complex, but it is worth it.\f1\fs24\par
 \f0\fs20 4. Your path algorithm for laying words must ensure that each following word in your path crosses the previous one. This helps with wasted recursions in the case of doing all across words, then checking if the down words are valid.\f1\fs24\par
 \f0\fs20 5. Optimal (not naive) backtracks help a lot (x100 speed increases or more in some cases).\f1\fs24\par
@@ -233,10 +242,6 @@ How are words and letters are stored on board? One is word centric and one is le
 \cf3\f0\fs20 20\tab\tab 0\tab\tab 0\tab\tab 3041\cf0\f1\fs24\par
 \cf3\f0\fs20 total\tab\tab 30405\tab\tab 42034\tab\tab 251578\cf0\f1\fs24\par
 \cf3\f0\fs20 lines\tab\tab 30418\tab\tab 53899\tab\tab 4325826\cf0\f1\fs24\par
-\cf3\f0\fs20 time\tab\tab 4 s\tab\tab 5 s\tab\tab 220 s 100s loading file 120s processing\cf0\f1\fs24\par
-\cf3\f0\fs20\par
-Bigger databases make for quicker solving but much longer prep.\cf0\f1\fs24\par
-\cf3\f0\fs20 The 'Clues' data base allows for a 6x6 grid solve in 68 sec, but load and pre-processing time is 220 sec. A 6x6 is not solvable with the smaller databases.\cf0\f1\fs24\par
 \cf3\f0\fs20\par
 \par
 \ul Walks for Word by Word\cf0\ulnone\f1\fs24\par
