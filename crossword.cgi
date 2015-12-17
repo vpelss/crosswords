@@ -144,6 +144,7 @@ my %targetWordsForBackTrack; #global as we need to backtrack to the first  membe
 my %targetLettersForBackTrack; #global as we need to backtrack to the first  member of it we encounter. if $targetLettersForBackTrack{x failed letter}{y failed letter} == undef there are NO targets!
 
 my $oldTime;
+my $grids;
 
 sub Main {
 
@@ -285,7 +286,6 @@ if ( $in{mode} eq 'word' ) {
 else {
      if ( &RecursiveLetters() == 0 )
            {
-           #&show();
            my $cnt = scalar keys %wordsThatAreInserted;
            $message = "\n\nFailed to fill grid Counts:$recursiveCount Words layed:$cnt \n\n";
            print $message;
@@ -314,8 +314,6 @@ open (DATA, "<./templates/index.html") or die("Template file /templates/index.ht
 my @DATA = <DATA>;
 close (DATA);
 my $template_file = join('' , @DATA);
-
-#$archivepath = 'c:\\home\\';
 
 my $startx;
 my $starty;
@@ -495,9 +493,6 @@ my @wordLetterPositions = ();
 my %alreadyInList = (); # $alreadyInList{number}{direction} = 1 if already in list
 my $wordNumber = 1;
 my $dir = 0;
-
-#not a good idea as it may prune search tree whem we split direction? Prove
-#$wordNumber = int(rand($biggestwordNumber));
 
 if (not defined $allMasksOnBoard[$wordNumber][$dir] ) # oops no horizontal #1 word. go vertical
      {$dir = 1;}

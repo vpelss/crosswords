@@ -1,0 +1,15 @@
+
+Loops per Sec: 1
+GSEVEN
+oooooo
+oooooo
+oooooo
+oooooo
+oooooo
+
+Time: 1
+Loops: 2
+Sec per Loop: 0.5
+Loops per Sec: 1
+
+optimalBacktrack: naiveBacktrack: recursive calls:2
