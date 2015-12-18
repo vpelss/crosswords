@@ -11,6 +11,8 @@
 #shadow (> 1) does not work if letter only belongs to a horiz or vert word
 #also fails on british
 
+#cookies store keys / no chat
+
 use strict;
 
 use CGI;
