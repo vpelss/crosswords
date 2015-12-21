@@ -111,20 +111,18 @@ var uid = "%uid%"
 
 var forever = new Date('October 17, 2030 03:24:00'); //use in cookies
 
-//var cookies = listCookies();
-
 function SetCellsFromCookies()
 {
 	var theCookies = document.cookie.split(';');
     var aString = '';
     for (var i = 0 ; i < theCookies.length ; i++) {
-		var cookie = theCookies[i].split('=');
-		//is it a cell???
-		var theletter = cookie[1].trim();
-		var thecell = cookie[0].trim();
-		if (cookie[0].indexOf("cell") !=-1) {
-			//var xy = cookie[0].split('_'); //split cell_x_y
-			//cellarray = cellletterarray[i].split("=");
+		var mycookie = theCookies[i].split('=');
+		var theletter = mycookie[1];
+		theletter = theletter.trim();
+		var thecell = mycookie[0];
+		thecell = thecell.trim();
+		//is it a cell???		
+		if (mycookie[0].indexOf("cell") != -1) {
 			document.getElementById(thecell).innerHTML = theletter;			
 			}
    }
@@ -373,7 +371,11 @@ hide2('InviteForm');
 		HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> .<BR>other
 		Crossword puzzles are at: <A HREF="%archiveurl%/%uid%/">Other Crossword
 		Puzzles</A><BR>or create a <A HREF="/cgi/crosswords/">New
-		Crossword</A></P></DIV><SCRIPT>//hide2("fbhide3");</SCRIPT> 
+		Crossword</A></P></DIV> 
+	<DIV ALIGN="CENTER"> 
+	  <FORM><INPUT TYPE="BUTTON" NAME="Button1"
+		VALUE="Clear Crossword"
+		ONCLICK="if (confirm('Are you sure you want to clear this crossword?')){DeleteCookies();location.reload();}"></FORM></DIV><SCRIPT>//hide2("fbhide3");</SCRIPT> 
 	<P></P> <SCRIPT>
 hide2('Answers');
 </SCRIPT> 

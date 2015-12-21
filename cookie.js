@@ -39,7 +39,17 @@ function listCookies() {
     var theCookies = document.cookie.split(';');
     var aString = '';
     for (var i = 1 ; i <= theCookies.length; i++) {
-        aString += i + ' ' + theCookies[i-1] + "\n";
+       aString += i + ' ' + theCookies[i-1] + "\n";
     }
     return aString;
+}
+
+function DeleteCookies() {
+    var theCookies = document.cookie.split(';');
+    for (var i = 0 ; i < theCookies.length; i++) {
+        var mycookie = theCookies[i].split('=');
+        var cookiename = mycookie[0];
+        cookiename = cookiename.trim();
+        deleteCookie(cookiename);
+    }
 }
