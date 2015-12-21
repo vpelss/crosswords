@@ -53,7 +53,7 @@ foreach ($myarray as $key => $val)
 
     ?>
 
-    <a href="<?php echo $val; ?>" target="_blank"><?php echo $val;?></a> ,
+    <a href="<?php echo $val; ?>/" target="_self"><?php echo $val;?></a> ,
     <?php
 
         }
