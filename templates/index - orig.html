@@ -105,30 +105,9 @@ overflow:auto;
   </HEAD> 
   <BODY
    ONKEYUP="if(CurrentFocus != ''){send_cell_update(event.keyCode||event.which);}//send keycode event to function for firefox">
-	<SCRIPT SRC="/crosswords/cookie.js"></SCRIPT> <SCRIPT TYPE="text/javascript">
+	<SCRIPT TYPE="text/javascript">
 //variables passed from facebook to .cgi script
 var uid = "%uid%"
-
-var forever = new Date('October 17, 2030 03:24:00'); //use in cookies
-
-//var cookies = listCookies();
-
-function SetCellsFromCookies()
-{
-	var theCookies = document.cookie.split(';');
-    var aString = '';
-    for (var i = 0 ; i < theCookies.length ; i++) {
-		var cookie = theCookies[i].split('=');
-		//is it a cell???
-		var theletter = cookie[1].trim();
-		var thecell = cookie[0].trim();
-		if (cookie[0].indexOf("cell") !=-1) {
-			//var xy = cookie[0].split('_'); //split cell_x_y
-			//cellarray = cellletterarray[i].split("=");
-			document.getElementById(thecell).innerHTML = theletter;			
-			}
-   }
-}
 
 function gup( name )
 {
@@ -267,14 +246,138 @@ NthPosition = FindNthPosition(xpos,ypos,LetterPosArray);
 };
 </SCRIPT> <SCRIPT TYPE="text/javascript">
   
+function GetxmlHttpObject(){
+var xmlHttp = null;
+if(window.XMLHttpRequest) //code for IE7, Firefox, Mozilla, etc.
+	{xmlHttp=new XMLHttpRequest();}
+else
+	{ 
+	try
+		{xmlHttp=new ActiveXObject("Msxml2.XMLHTTP");} //code for IE5, IE6
+	catch(e)
+		{
+		try
+			{xmlHttp=new ActiveXObject("Microsoft.XMLHTTP");}
+		catch(ee)
+			{xmlHttp=null;}
+	}
+} 
+if (xmlHttp==null)
+  {
+  alert("Your browser does not support AJAX.");
+  return;
+  }
+return xmlHttp;
+}
+
+function do_nothing(){}
+
+function ajax_send_uri(uripath , handleresponstetextfunction , argstring)
+{
+var query = uripath + '?nocache=' + Math.random() + argstring; //must have '?nocache=' + Math.random() to thwart IE cach issues if set to auto
+var xmlHttp = GetxmlHttpObject();
+xmlHttp.open("GET" , query , true);
+xmlHttp.onreadystatechange = 
+	function()
+		{
+		if (xmlHttp.readyState != 4) {return;}
+		responseText = xmlHttp.responseText;
+		if(xmlHttp.status != 200)
+			{responseText = '';document.getElementById("networkstatus").innerHTML = 'Network is down. You are playing with yourself. Changes will not be saved.';} //if error we don't want to return error text	
+		else 
+			{document.getElementById("networkstatus").innerHTML = 'Network OK';}	
+		handleresponstetextfunction(responseText);
+		};
+xmlHttp.send(null);
+delete xmlHttp;
+}
+
+var lastchattext;
+SkipDelay = 5;
+var SkipOneChatAlert = SkipDelay;
+function ajax_get_chat()
+	{
+	ajax_send_uri("%archiveurl%/%uid%/%game%/chat.txt" , update_chat , '');
+	SkipOneChatAlert--;
+	var returnedtext = document.getElementById("chatbox").innerHTML;
+	if ((returnedtext != "") && (lastchattext != document.getElementById("chatbox").innerHTML) && (SkipOneChatAlert < 1))
+				{
+				alert('Incoming chat update');
+				SkipOneChatAlert = SkipDelay;
+				}
+	lastchattext = returnedtext;
+	}
+
+var maxScroll=0;
+function update_chat(returnedtext)
+	{
+	if( returnedtext && returnedtext != "")
+		{
+		document.getElementById("chatbox").innerHTML = returnedtext;
+		if(document.getElementById("chatbox").scrollTop >= maxScroll) //a line was added
+			{
+			document.getElementById("chatbox").scrollTop += 999999; //go to bottom and then some in case others add text
+			maxScroll = document.getElementById("chatbox").scrollTop; //set current value of virtual text box height
+			}
+		}
+	}
+
+function send_chat(sendtext)
+	{
+	SkipOneChatAlert = SkipDelay;
+	if (document.getElementById("chatname").value == '') {document.getElementById("chatname").value = 'Player ' + Math.floor(Math.random()*99+1)}
+	ajax_send_uri('%scripturl%/chat.cgi' , do_nothing , '&chatline=' + escape(sendtext) + '&uid=%uid%' + '&game=%game%'  + '&chatname=' + document.getElementById("chatname").value);	
+	document.getElementById("chatline").value = '';	
+	document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight + 100;	
+	}
+
 function send_cell_update(k)
 	{
 	var letter = String.fromCharCode(k);
 	document.getElementById(CurrentFocus).innerHTML = letter;//place keystroke on crossword
-	setCookie(CurrentFocus , letter , forever , '' , '' , ''); //CurrentFocus = cell_x_y
+	ajax_send_uri('%scripturl%/cellupdate.cgi' , do_nothing , '&cell=' + CurrentFocus + '&letter=' + letter + '&uid=%uid%' + '&game=%game%');	
 	HighlightNextBox();//go to next box	
 	}
 	
+function get_crossword_updates()
+	{
+	ajax_send_uri('%archiveurl%/%uid%/%game%/out.txt' , processupdates , '');	
+	}
+	
+function processupdates(returnedtext)	
+	{
+	//now fill in cells.....	
+	if( returnedtext && returnedtext != "")
+		{
+		var cellletterarray = returnedtext.split("|");
+		var i;
+		for(i = 0 ; i< cellletterarray.length - 1 ; i++)
+			{
+			cellarray = cellletterarray[i].split("=");
+			document.getElementById(cellarray[0]).innerHTML = cellarray[1];
+			}
+		}
+	}
+	
+var count = '';
+function continue_main()
+	{
+	ajax_get_chat(update_chat);
+	get_crossword_updates();
+	//count += 1;
+count = count + '.';
+	document.getElementById("counter").innerHTML = count;
+if (count == '..........') {count = ''}
+	setTimeout("continue_main();",1000);
+	}
+	
+function sendmail()
+		{
+		var to = document.getElementById("to").value ;
+		var from = document.getElementById("from").value ;
+		ajax_send_uri('%scripturl%/invite.cgi' , do_nothing , '&game=%game%&from=' + from + '&to=' + to);		
+		}	
+
 function CreateBookmarkLink() 
 	{
 	var title = "Crossword game %game%"; 
@@ -292,7 +395,6 @@ function CreateBookmarkLink()
 		return true; 
 		}
  	}
-
 
 </SCRIPT> 
 	 
@@ -330,7 +432,7 @@ hide2('Instructions');
 		<P>From: <INPUT TYPE="TEXT" NAME="Text1" ID="from"> To:
 		  <INPUT TYPE="TEXT" VALUE="friends@email.com" ID="to">
 		  <INPUT TYPE="BUTTON" NAME="Button2" VALUE="Invite"
-                   			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
+               			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
 		  </P> </FORM><SCRIPT>
 hide2('InviteForm');
 </SCRIPT> 
@@ -344,7 +446,33 @@ hide2('InviteForm');
 	  <A HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> |
 	  <A HREF="%archiveurl%/%uid%/">Archived Crossword Puzzles</A> |
 	  <A HREF="/cgi/crosswords/">New Crossword</A></H6> 
-	<P ALIGN="CENTER">Crossword</P> 
+	<DIV ALIGN="CENTER"> 
+	  <TABLE CELLPADDING="0" CELLSPACING="0"> 
+		<TR> 
+		  <TD> 
+			<DIV ID="networkstatus" ALIGN="JUSTIFY">Network Status</DIV></TD> 
+		  <TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD> 
+		  <TD> 
+			<DIV ID="counter" ALIGN="JUSTIFY">..........</DIV></TD> 
+		</TR> 
+	  </TABLE></DIV> 
+	 
+
+	<!--Must be outside of table or IE will not refresh!!!-->
+	<DIV ID="chatbox" CLASS="chatbox">Chat Box</DIV> <!--Must be outside of table or IE will not refresh!!!-->
+	<DIV ALIGN="CENTER"> 
+	  <FORM> 
+		<P><INPUT TYPE="TEXT" ID="chatline"
+		  ONKEYPRESS="if (event.keyCode == 13){send_chat(document.getElementById('chatline').value);return false;};"
+		  SIZE="25" ONFOCUS="CurrentFocus='';//send keystrokes to bit bucket">
+		  <INPUT TYPE="SUBMIT"
+		   ONCLICK="send_chat(document.getElementById('chatline').value);return false;"
+		   VALUE="Chat">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		  <INPUT TYPE="BUTTON" NAME="Button1" VALUE="Clear"
+		   ONCLICK="document.getElementById('chatbox').innerHTML = '';ajax_send_uri('%scripturl%/chat.cgi' , do_nothing , '&uid=%uid%&game=%game%&clear=1');return false;">
+		  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name:
+		  <INPUT TYPE="TEXT" NAME="chatname" ID="chatname"></P> </FORM></DIV> 
+	<P ALIGN="CENTER">Crossword</P>
 	<DIV ALIGN="CENTER"><B><FONT COLOR="#CC0000">Click on puzzle or Clues and
 	  type your answer</FONT></B></DIV> 
 	<DIV ALIGN="CENTER"> 
@@ -381,8 +509,17 @@ hide2('Answers');
 	  </DIV> <SCRIPT>
 //set our name for the chat if passed from facebook!
 var $name = gup("name");
+if (uid == 'common') //hide things when in facebook. or show when not in facebook
+	{
+	//show2("fbhide1");
+	//show2("fbhide3");	
+	}
+else
+	{
+	document.getElementById('chatname').value = unescape($name); //set chat name if in facebook
+	}	
 
-SetCellsFromCookies();
-	
+setTimeout("continue_main();",1000);
+send_chat(unescape($name + ' joined the game.'));
 </SCRIPT> </BODY>
 </HTML>

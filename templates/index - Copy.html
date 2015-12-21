@@ -267,14 +267,143 @@ NthPosition = FindNthPosition(xpos,ypos,LetterPosArray);
 };
 </SCRIPT> <SCRIPT TYPE="text/javascript">
   
+function GetxmlHttpObject(){
+var xmlHttp = null;
+if(window.XMLHttpRequest) //code for IE7, Firefox, Mozilla, etc.
+	{xmlHttp=new XMLHttpRequest();}
+else
+	{ 
+	try
+		{xmlHttp=new ActiveXObject("Msxml2.XMLHTTP");} //code for IE5, IE6
+	catch(e)
+		{
+		try
+			{xmlHttp=new ActiveXObject("Microsoft.XMLHTTP");}
+		catch(ee)
+			{xmlHttp=null;}
+	}
+} 
+if (xmlHttp==null)
+  {
+  alert("Your browser does not support AJAX.");
+  return;
+  }
+return xmlHttp;
+}
+
+function do_nothing(){}
+
+function ajax_send_uri(uripath , handleresponstetextfunction , argstring)
+{
+var query = uripath + '?nocache=' + Math.random() + argstring; //must have '?nocache=' + Math.random() to thwart IE cach issues if set to auto
+var xmlHttp = GetxmlHttpObject();
+xmlHttp.open("GET" , query , true);
+xmlHttp.onreadystatechange = 
+	function()
+		{
+		if (xmlHttp.readyState != 4) {return;}
+		responseText = xmlHttp.responseText;
+		if(xmlHttp.status != 200)
+			{responseText = '';document.getElementById("networkstatus").innerHTML = 'Network is down. You are playing with yourself. Changes will not be saved.';} //if error we don't want to return error text	
+		else 
+			{document.getElementById("networkstatus").innerHTML = 'Network OK';}	
+		handleresponstetextfunction(responseText);
+		};
+xmlHttp.send(null);
+delete xmlHttp;
+}
+
+var lastchattext;
+SkipDelay = 5;
+var SkipOneChatAlert = SkipDelay;
+function ajax_get_chat()
+	{
+	ajax_send_uri("%archiveurl%/%uid%/%game%/chat.txt" , update_chat , '');
+	SkipOneChatAlert--;
+	var returnedtext = document.getElementById("chatbox").innerHTML;
+	if ((returnedtext != "") && (lastchattext != document.getElementById("chatbox").innerHTML) && (SkipOneChatAlert < 1))
+				{
+				alert('Incoming chat update');
+				SkipOneChatAlert = SkipDelay;
+				}
+	lastchattext = returnedtext;
+	}
+
+var maxScroll=0;
+function update_chat(returnedtext)
+	{
+	if( returnedtext && returnedtext != "")
+		{
+		document.getElementById("chatbox").innerHTML = returnedtext;
+		if(document.getElementById("chatbox").scrollTop >= maxScroll) //a line was added
+			{
+			document.getElementById("chatbox").scrollTop += 999999; //go to bottom and then some in case others add text
+			maxScroll = document.getElementById("chatbox").scrollTop; //set current value of virtual text box height
+			}
+		}
+	}
+
+function send_chat(sendtext)
+	{
+	SkipOneChatAlert = SkipDelay;
+	if (document.getElementById("chatname").value == '') {document.getElementById("chatname").value = 'Player ' + Math.floor(Math.random()*99+1)}
+	ajax_send_uri('%scripturl%/chat.cgi' , do_nothing , '&chatline=' + escape(sendtext) + '&uid=%uid%' + '&game=%game%'  + '&chatname=' + document.getElementById("chatname").value);	
+	document.getElementById("chatline").value = '';	
+	document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight + 100;	
+	}
+
 function send_cell_update(k)
 	{
 	var letter = String.fromCharCode(k);
 	document.getElementById(CurrentFocus).innerHTML = letter;//place keystroke on crossword
+
+	//ajax_send_uri('%scripturl%/cellupdate.cgi' , do_nothing , '&cell=' + CurrentFocus + '&letter=' + letter + '&uid=%uid%' + '&game=%game%');	
 	setCookie(CurrentFocus , letter , forever , '' , '' , ''); //CurrentFocus = cell_x_y
+	
 	HighlightNextBox();//go to next box	
 	}
 	
+function get_crossword_updates()
+	{
+	ajax_send_uri('%archiveurl%/%uid%/%game%/out.txt' , processupdates , '');
+	
+
+	}
+	
+function processupdates(returnedtext)	
+	{
+	//now fill in cells.....	
+	if( returnedtext && returnedtext != "")
+		{
+		var cellletterarray = returnedtext.split("|");
+		var i;
+		for(i = 0 ; i< cellletterarray.length - 1 ; i++)
+			{
+			cellarray = cellletterarray[i].split("=");
+			document.getElementById(cellarray[0]).innerHTML = cellarray[1];
+			}
+		}
+	}
+	
+var count = '';
+function continue_main()
+	{
+	ajax_get_chat(update_chat);
+	//get_crossword_updates();
+	//count += 1;
+count = count + '.';
+	document.getElementById("counter").innerHTML = count;
+if (count == '..........') {count = ''}
+	setTimeout("continue_main();",1000);
+	}
+	
+function sendmail()
+		{
+		var to = document.getElementById("to").value ;
+		var from = document.getElementById("from").value ;
+		ajax_send_uri('%scripturl%/invite.cgi' , do_nothing , '&game=%game%&from=' + from + '&to=' + to);		
+		}	
+
 function CreateBookmarkLink() 
 	{
 	var title = "Crossword game %game%"; 
@@ -381,6 +510,18 @@ hide2('Answers');
 	  </DIV> <SCRIPT>
 //set our name for the chat if passed from facebook!
 var $name = gup("name");
+if (uid == 'common') //hide things when in facebook. or show when not in facebook
+	{
+	//show2("fbhide1");
+	//show2("fbhide3");	
+	}
+else
+	{
+	//document.getElementById('chatname').value = unescape($name); //set chat name if in facebook
+	}	
+
+//setTimeout("continue_main();",1000);
+//send_chat(unescape($name + ' joined the game.'));
 
 SetCellsFromCookies();
 	
