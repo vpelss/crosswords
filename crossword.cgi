@@ -1998,6 +1998,7 @@ for ($y = 0; $y < $in{height}; $y++)
                                  if ($dir == 0) {$direction = 'Across'}
                                  if ($dir == 1) {$direction = 'Down'}
                                  $temp3 .= "$direction: $clues{$word} \n";
+                                 $temp3 =~ s/[\'\"]//g; #remove quotes from title s it is in a tag
                                  }
                             }
 
