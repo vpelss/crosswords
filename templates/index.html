@@ -1,12 +1,12 @@
 <!DOCTYPE HTML PUBLIC "-//SoftQuad Software//DTD HoTMetaL PRO 6.0::19990601::extensions to HTML 4.0//EN" "hmpro6.dtd">
 <HTML> 
   <HEAD><META HTTP-EQUIV="Pragma" CONTENT="no-cache">
-	<META NAME="KEYWORDS"
-	 CONTENT="Crosswords , Friends , infinite , instant , unlimited , crossword , cross, word, generator , puzzle , script , crosswords, printable , free">
-	<META NAME="DESCRIPTION"
-	 CONTENT="Crosswords for Friends Infinite Free Crossword Puzzle Generator Script to create Crosswords for prining or saving for use in your web browser">
-	
-	<TITLE> Crossword Puzzle Generator by Emogic.com %game%</TITLE> <STYLE TYPE="text/css">
+	 <META NAME="KEYWORDS"
+	  CONTENT="Crosswords , Friends , infinite , instant , unlimited , crossword , cross, word, generator , puzzle , script , crosswords, printable , free">
+	 <META NAME="DESCRIPTION"
+	  CONTENT="Crosswords for Friends Infinite Free Crossword Puzzle Generator Script to create Crosswords for prining or saving for use in your web browser">
+	 <LINK REL="stylesheet" HREF="/jqueryui/jquery-ui.css"> <SCRIPT SRC="//code.jquery.com/jquery-1.10.2.js"></SCRIPT> <SCRIPT SRC="/jqueryui/jquery-ui.js"></SCRIPT> 
+	 <TITLE> Crossword Puzzle Generator by Emogic.com %game%</TITLE> <STYLE TYPE="text/css">
 
 .cellnumber{
 color:red;
@@ -104,12 +104,64 @@ overflow:auto;
 </STYLE> 
   </HEAD> 
   <BODY
-   ONKEYUP="if(CurrentFocus != ''){send_cell_update(event.keyCode||event.which);}//send keycode event to function for firefox">
-	<SCRIPT SRC="/crosswords/cookie.js"></SCRIPT> <SCRIPT TYPE="text/javascript">
+	ONKEYUP="if(CurrentFocus != ''){send_cell_update(event.keyCode||event.which);}//send keycode event to function for firefox">
+	 
+	 <!--start How To Play dialog jqueryui-->
+	 <SCRIPT>
+//start dialogs and turn off
+$(function() {
+    $( ".dialogs" ).dialog({
+        autoOpen: false,
+      modal: true,
+      buttons: {
+        Ok: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    });
+  });
+
+function howtoplay ()
+ {
+ $( '#dialog-message' ).dialog( "open" );
+$( "#dialog-message" ).dialog( "option", "width", 800 );
+ };
+
+</SCRIPT> 
+	 <DIV ID="dialog-message" TITLE="Instructions" CLASS="dialogs"
+	  STYLE="width:800pt;"> 
+		<P>Instructions:</P> 
+		<UL> 
+		  <LI>Edit this crossword by clicking on a square and entering a
+			 letter.</LI>
+		  <LI>You can navigate using the mouse or arrow keys.</LI>
+		  <LI>Note when you select a word, tjhe hint is highlighted, and letting
+			 your mouse hover over a square will show the hints for that square.</LI>
+		  <LI>Click on the Hint to select a word, or click on a square in the
+			 word.</LI>
+		  <LI>Click on the same square again to change between horizontal and
+			 vertical words or click on the / button.</LI>
+		  <LI>If you get stuck on a hint, click on the hint's google link, or
+			 show link. </LI>
+		  <LI>If you want to show the completed puzzle, click on 'Show
+			 Answers'</LI>
+		  <LI>Your puzzle is saved using cookies. So if you use another computer,
+			 or delete your cookies, you will not have access to your saved puzzle.</LI> 
+		  <LI>Print it. You may want to Show Answers at the bottom of this page
+			 first. If your printer is not printing the black squares, your print drivers
+			 may be in a printer 'econo' or 'toner save' mode. Firefox has the ability to
+			 print color backgrounds. Microsoft's IE does not allow it. Adjust your printer
+			 settings accordingly.</LI> 
+		</UL> </DIV>
+<!--end How To Play dialog jqueryui-->
+	 <SCRIPT SRC="/crosswords/cookie.js"></SCRIPT> <SCRIPT TYPE="text/javascript">
 //variables passed from facebook to .cgi script
 var uid = "%uid%"
 
 var forever = new Date('October 17, 2030 03:24:00'); //use in cookies
+//var isAClickableClass['tdwordselectedclass'] = 1; 
+//isAClickableClass['tdwhiteclass'] = 1;
+var isAClickableClass = {tdwordselectedclass:1 , tdwhiteclass:1 , tdselectedclass:1};
 
 function SetCellsFromCookies()
 {
@@ -267,11 +319,30 @@ NthPosition = FindNthPosition(xpos,ypos,LetterPosArray);
   
 function send_cell_update(k)
 	{
-	var letter = String.fromCharCode(k);
-	document.getElementById(CurrentFocus).innerHTML = letter;//place keystroke on crossword
-	setCookie(CurrentFocus , letter , forever , '' , '' , ''); //CurrentFocus = cell_x_y
-	HighlightNextBox();//go to next box	
-	}
+//first see if it is an arrow key
+var xpos = CurrentPos[0];
+var ypos = CurrentPos[1];
+//move cell. if square is clickable run document.getElementById(cell).onclick() and return, else,return	  
+if (k == 37) { xpos-- } //left
+if (k == 38) { ypos-- } //up
+if (k == 39) { xpos++ } //right
+if (k == 40) { ypos++ } //down
+if (k == 191) {  } // forward slash. just change horiz and vert
+if ( (k == 37) || (k == 38) || (k == 39) || (k == 40) || (k == 191) ) { //arrow keys	    
+	 cell = "cell_" + xpos + "_" + ypos;
+	 if (isAClickableClass[document.getElementById(cell).className] == 1) {
+	 	document.getElementById(cell).onclick();
+		return false;;
+		} 
+    else {return false;}
+	 }
+
+//no arrow keys. lay the letter
+var letter = String.fromCharCode(k);
+document.getElementById(CurrentFocus).innerHTML = letter;//place keystroke on crossword
+setCookie(CurrentFocus , letter , forever , '' , '' , ''); //CurrentFocus = cell_x_y
+HighlightNextBox();//go to next box	
+}
 	
 function CreateBookmarkLink() 
 	{
@@ -293,94 +364,55 @@ function CreateBookmarkLink()
 
 
 </SCRIPT> 
-	 
-	 
-	 <!--
-	 <DIV ID="fbhide1"> 
-		<TABLE CELLPADDING="3" CELLSPACING="0" BGCOLOR="#FFFFFF" BORDER="1"> 
+	 <H4 ALIGN="CENTER">An <A HREF="/">Emogic</A> Crossword : #
+		<A HREF="%archiveurl%/%uid%/%game%">%game%</A></H4> 
+	 <DIV ALIGN="CENTER"> 
+		<FORM><INPUT TYPE="BUTTON" NAME="Button1" VALUE="Instructions"
+		  ONCLICK="howtoplay();"></FORM></DIV>
+	 <H6 ALIGN="CENTER">Your puzzle has been archived at:
+		<A HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> |
+		<A HREF="%archiveurl%/%uid%/">Archived Crossword Puzzles</A> |
+		<A HREF="/cgi/crosswords/">New Crossword</A></H6> 
+	 <P ALIGN="CENTER">Crossword</P> 
+	 <DIV ALIGN="CENTER"><B><FONT COLOR="#CC0000">Click on puzzle or Clues and
+		type your answer</FONT></B></DIV> 
+	 <DIV ALIGN="CENTER"> 
+		<TABLE CELLPADDING="3" CELLSPACING="0"> 
 		  <TR> 
-			 <TD>&nbsp;<A
-				ONCLICK="show2('Instructions');hide2('ShowInstructions');show2('HideInstructions');"
-				HREF="#self" ID="ShowInstructions">Show Instructions</A><A
-				ONCLICK="hide2('Instructions');show2('ShowInstructions');hide2('HideInstructions');"
-				HREF="#self" ID="HideInstructions">Hide Instructions</A>&nbsp;</TD> 
-			 <TD> &nbsp;<A HREF="#"
-				ONCLICK="if (confirm('Are you sure? Be sure to bookmark the current puzzle first.')) {window.open('%scripturl%','_self');}
-else{};">Create
-				another crossword</A>&nbsp;</TD> 
-			 <TD> &nbsp;<A HREF="#" ID="InviteLink"
-				ONCLICK="hide2('InviteLink');show2('InviteForm');Return=false;">Ask a friend to
-				help solve your Crosswod Puzzle</A>&nbsp;</TD> 
+			 <TD><%puzzle%></TD> 
+			 <TD> </TD> 
 		  </TR> 
-		</TABLE></DIV><SCRIPT>hide2("fbhide1");</SCRIPT> <SCRIPT>hide2('HideInstructions');</SCRIPT> 
-	 <DIV ID="Instructions"> 
-		<P>Edit this crossword by clicking on a square and entering a letter.<BR>
-		  <A HREF="#" ONCLICK="CreateBookmarkLink();">Add to Favorites</A> to complete it
-		  at a later time. (<B>.html extension</B>)<BR>Or <A
-		  HREF="window.print()">Print</A> it. You may want to Show Answers at the bottom
-		  of this page first. If your printer is not printing the black squares, your
-		  print drivers may be in a printer 'econo' or 'toner save' mode. Firefox has the
-		  ability to print color backgrounds. Microsoft's IE does not allow it. Adjust
-		  your printer settings accordingly. </P></DIV> <SCRIPT>
-hide2('Instructions');
-</SCRIPT> 
-	 <FORM ID="InviteForm"> 
-		<P>From: <INPUT TYPE="TEXT" NAME="Text1" ID="from"> To:
-		  <INPUT TYPE="TEXT" VALUE="friends@email.com" ID="to">
-		  <INPUT TYPE="BUTTON" NAME="Button2" VALUE="Invite"
-                   			ONCLICK="sendmail();send_chat(escape(document.getElementById('from').value) + ' has invited ' + escape(document.getElementById('to').value) + ' to play');show2('InviteLink');hide2('InviteForm');return false;">
-		  </P> </FORM><SCRIPT>
-hide2('InviteForm');
-</SCRIPT> 
-	 <P></P> 
-
-
--->
-	<H4 ALIGN="CENTER">An <A HREF="/">Emogic</A> Crossword : #
-	  <A HREF="%archiveurl%/%uid%/%game%">%game%</A></H4> 
-	<H6 ALIGN="CENTER">Your puzzle has been archived at:
-	  <A HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> |
-	  <A HREF="%archiveurl%/%uid%/">Archived Crossword Puzzles</A> |
-	  <A HREF="/cgi/crosswords/">New Crossword</A></H6> 
-	<P ALIGN="CENTER">Crossword</P> 
-	<DIV ALIGN="CENTER"><B><FONT COLOR="#CC0000">Click on puzzle or Clues and
-	  type your answer</FONT></B></DIV> 
-	<DIV ALIGN="CENTER"> 
-	  <TABLE CELLPADDING="3" CELLSPACING="0"> 
-		<TR> 
-		  <TD><%puzzle%></TD> 
-		  <TD> </TD> 
-		</TR> 
-	  </TABLE></DIV> 
-	<DIV ALIGN="CENTER"> 
-	  <TABLE CELLPADDING="3" CELLSPACING="0"> 
-		<TR VALIGN="TOP"> 
-		  <TD VALIGN="TOP">Across:<HR> <%across%></TD> 
-		  <TD VALIGN="TOP"> Down:<HR> <%down%></TD> 
-		</TR> 
-	  </TABLE></DIV> 
-	<P ALIGN="CENTER"><A ONCLICK="show2('Answers')" HREF="#self">Show
-	  Answers</A>&nbsp;&nbsp;&nbsp;<A ONCLICK="hide2('Answers')" HREF="#self">Hide
-	  Answers</A></P> 
-	<P ALIGN="CENTER">Answers</P> 
-	<DIV ID="Answers" ALIGN="CENTER"> 
-	  <P><%answers%>
-	  </P></DIV> 
-	<DIV ID="fbhide3" ALIGN="CENTER"> 
-	  <P>Your puzzle has been archived at: <A
-		HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> .<BR>other
-		Crossword puzzles are at: <A HREF="%archiveurl%/%uid%/">Other Crossword
-		Puzzles</A><BR>or create a <A HREF="/cgi/crosswords/">New
-		Crossword</A></P></DIV> 
-	<DIV ALIGN="CENTER"> 
-	  <FORM><INPUT TYPE="BUTTON" NAME="Button1"
-		VALUE="Clear Crossword"
-		ONCLICK="if (confirm('Are you sure you want to clear this crossword?')){DeleteCookies();location.reload();}"></FORM></DIV><SCRIPT>//hide2("fbhide3");</SCRIPT> 
-	<P></P> <SCRIPT>
+		</TABLE></DIV> 
+	 <DIV ALIGN="CENTER"> 
+		<TABLE CELLPADDING="3" CELLSPACING="0"> 
+		  <TR VALIGN="TOP"> 
+			 <TD VALIGN="TOP">Across:<HR> <%across%></TD> 
+			 <TD VALIGN="TOP"> Down:<HR> <%down%></TD> 
+		  </TR> 
+		</TABLE></DIV> 
+	 <P ALIGN="CENTER"><A ONCLICK="show2('Answers')" HREF="#self">Show
+		Answers</A>&nbsp;&nbsp;&nbsp;<A ONCLICK="hide2('Answers')" HREF="#self">Hide
+		Answers</A></P> 
+	 <P ALIGN="CENTER">Answers</P> 
+	 <DIV ID="Answers" ALIGN="CENTER"> 
+		<P><%answers%>
+		</P></DIV> 
+	 <DIV ID="fbhide3" ALIGN="CENTER"> 
+		<P>Your puzzle has been archived at: <A
+		  HREF="%archiveurl%/%uid%/%game%">%archiveurl%/%uid%/%game%/</A> .<BR>other
+		  Crossword puzzles are at: <A HREF="%archiveurl%/%uid%/">Other Crossword
+		  Puzzles</A><BR>or create a <A HREF="/cgi/crosswords/">New
+		  Crossword</A></P></DIV> 
+	 <DIV ALIGN="CENTER"> 
+		<FORM><INPUT TYPE="BUTTON" NAME="Button1"
+		  VALUE="Clear Crossword"
+		  ONCLICK="if (confirm('Are you sure you want to clear this crossword?')){DeleteCookies();location.reload();}"></FORM></DIV><SCRIPT>//hide2("fbhide3");</SCRIPT>
+	 
+	 <P></P> <SCRIPT>
 hide2('Answers');
 </SCRIPT> 
-	<DIV ALIGN="CENTER"> <B>Crossword Script by <A HREF="/">Emogic</A></B><BR>
-	  </DIV> <SCRIPT>
+	 <DIV ALIGN="CENTER"> <B>Crossword Script by <A HREF="/">Emogic</A></B><BR>
+		</DIV> <SCRIPT>
 //set our name for the chat if passed from facebook!
 var $name = gup("name");
 
