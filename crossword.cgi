@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 
-#ensure PrintProcessing only prints once a second. it slows our code down to print on every loop. 
-
 #future ideas ver 3.0 meta recurse using blocks. blocks will consist of a starting word and dir and all it's crossing words
 
 #allow sentences in words (strip out spaces)
