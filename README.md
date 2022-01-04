@@ -1,4 +1,4 @@
-Emogic's Crossword Generation Algorithm 
+# Emogic's Crossword Generation Algorithm 
 
 My web based Crossword Generator is operational at http://www.emogic.com/cgi/crosswords/
 It is intended more as a tool to study the various ways that algorithms can generate crossword puzzles and the differences between them.
