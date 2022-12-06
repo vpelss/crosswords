@@ -116,7 +116,7 @@
 							  <TR> 
 								<TD ALIGN="CENTER"><INPUT TYPE="CHECKBOX"
 								  NAME="shuffle" CHECKED="CHECKED">
-								  <A HREF="#" ONCLICK="alert(slowdownvar);return false;">Suffle
+								  <A HREF="#" ONCLICK="alert(shufflevar);return false;">Suffle
 								  Words/Letters</A></TD> 
 							  </TR> 
 							</TABLE></TD> 
@@ -292,6 +292,7 @@ var worddatabasevar = 'The more words we have in our database the easier it is t
 var walkpathvar = 'The walk path is the order we try to lay down words. The path chosen can vastly improve the generation time. Different paths work better for different grids but Crossing Words is the best for most situations. Letter walks are the slowest and are provided only to test and prove this fact.';
 var optimumbacktrackvar = 'Optimal Backtrack vastly speeds up the search by removing more than one word when we can no longer lay down another word. It will continue to remove words until it reaches a word that potentially caused the failure.';
 var slowdownvar = 'Only use this if you want to see the walk in slow time. It is not useful in generating crosswords.';
+var shufflevar = 'If unchecked, it will try to lay words down in alphabetic order. So it will generate the same puzzle each time. It is not useful in generating crosswords. It is only usefull if you want to replicate a crossword generation scenario.';
 var simplewordmaskvar = 'This lets the recursion figure out if the crossing words will play nice. Although is speeds up the words layed per second, it is slower overall.';
 
 //get processing.txt often

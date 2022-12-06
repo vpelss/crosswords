@@ -19,6 +19,7 @@ use CGI;
 use List::Util qw(shuffle);
 use Time::HiRes;
 use Fcntl qw(:flock SEEK_END);
+use lib '.'; #nuts, PERL has changed. add local path to @INC
 use vpvars;
 
 #get setup variables the proper way
