@@ -20,14 +20,10 @@ My new Crossword Source Code is at:
 https://github.com/vpelss/crosswords
 The word lists are not included. A wonderful one is at  www.otsys.com/clue but it must be modified to work with my code.
 My code is commented. But I make no apologies if it makes no sense to you. 
-It is always being modified and updated. 
-If I am in the middle of a big upgrade, the code may not work.
-No free support will be given.
-If you have suggestions, please use the "Contact Us" link.
 
-You can download the code for my old British style Crossword Generator at https://www.emogic.com/store/free_crossword_script. No free support will be given.
+You can download the code for my old British style Crossword Generator at https://www.emogic.com/store/free_crossword_script.
 
-Some things I have learned
+Some things I have learned...
 
 1. The bigger the word database the better.
 2. Single letter searches are not the answer as there are too many combinations. For each lay of a letter you only check at most two words with the letter in common. So even with the fast calculation time for each letter, all the recursion adds up. Complete word searches (Laying a word and simultaneously checking that all the crossing words will have a possible word) although much slower, has fewer recursive calls. On most of my test scenarios, laying words was faster. Another way of stating the benefit of laying words is that a single random word replacement searches the puzzle space quicker. For example, when laying the first letter, if that letter will never result in a valid puzzle, we may not know until millions of recursions have passed. We discover mistakes faster by laying whole words.
