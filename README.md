@@ -6,6 +6,8 @@ It is not intended to generate New York Times quality puzzles.
 
 See: "Design and Implementation of Crossword Compilation Programs Using Serial Approaches" (CCP) http://thesis.cambon.dk/ for many of the concepts mentioned in this text. If you want to create your own crossword generator script,it is a great place to start. I had some difficulty untangling some concepts presented, but it has plenty of good ideas and sparked many ideas of my own. That site has sample code in C. I disagree with a few points. One big one is that a letter search is as good (or equivalent) to a word search. In a logical sense it is (it can do the same job), but it is not equivilant when it comes to the time required to generate a crossword. A letter search will have more function calls and backtracking (more dead ends).
 
+Note: thesis.cambon.dk.pdf posted with the authors permission as the site no longer exists.
+
 Please use the 'Contact Us' link at the bottom if you found this useful or would like to share a thought.
 
 Why PERL?
